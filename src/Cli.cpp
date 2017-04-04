@@ -7,6 +7,7 @@
 
 Cli::Cli() {
     source_is_dir = false;
+    sources = std::vector<std::string>();
 }
 
 int Cli::main(int argc, char **argv) {
@@ -18,28 +19,68 @@ int Cli::main(int argc, char **argv) {
         return 0;
     }
 
-    std::cout << source_is_dir << std::endl;
+    std::cout << "Source is directory: " << source_is_dir << std::endl;
+    std::cout << "Sources:";
+    for (size_t i=0; i < sources.size(); i++) {
+        std::cout << " " << sources.at(i);
+    }
+    std::cout << std::endl;
+    std::cout << "Output filename: " << output_filename << std::endl;
+    return 0;
+}
 
+int Cli::parse_option(std::string option) {
+
+    if (option == "-d") {
+        source_is_dir = true;
+    } else {
+        return 1;
+    }
+
+    return 0;
+
+}
+
+int Cli::read_dir(std::string path) {
     return 0;
 }
 
 int Cli::parse_arguments(int argc, char **argv) {
 
+    // Make sure there is enough arguments
     if (argc < 3) {
         return 1;
     }
 
-    for (int i=0; i < argc; i++) {
+    int counter = 1;
+    int last = argc-1;
+    std::string argument = std::string(argv[counter]);
 
-        std::string argument = std::string(argv[i]);
-
-        if (argument == "-d") {
-            source_is_dir = true;
+    // Read options
+    while (!argument.empty() && argument.at(0) == '-') {
+        if (parse_option(argument)) {
+            return 2;
         }
-
-
-
+        counter++;
+        argument = std::string(argv[counter]);
     }
+
+    //Read sources
+    if (source_is_dir) {
+        read_dir(argument);
+    } else {
+        while (counter < last) {
+            // Make sure it's a .pcd file
+            if (argument.substr(argument.find_last_of(".") + 1) != "pcd") {
+                return 3;
+            }
+            sources.push_back(argument);
+            counter++;
+            argument = std::string(argv[counter]);
+        }
+    }
+
+    output_filename = std::string(argv[last]);
 
     return 0;
 
