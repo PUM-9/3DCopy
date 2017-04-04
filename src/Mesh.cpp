@@ -105,16 +105,6 @@ int Mesh::main()
     }
     pcl::fromPCLPointCloud2(cloud_blob, *cloud_lamp);
 
-    if (pcl::io::loadPCDFile("ism_test_cat.pcd", cloud_blob) == -1) {
-        std::cout << "Couldn't read file bun0.pcd" << std::endl;
-    }
-    //pcl::fromPCLPointCloud2(cloud_blob, *cloud_cat);
-
-    if (pcl::io::loadPCDFile("ism_test_wolf.pcd", cloud_blob) == -1) {
-        std::cout << "Couldn't read file bun0.pcd" << std::endl;
-    }
-    //pcl::fromPCLPointCloud2(cloud_blob, *cloud_wolf);
-
     NormalCloud::Ptr normals = estimate_normals(cloud_lamp);
 
     // Add the normals to the point cloud
@@ -130,6 +120,8 @@ int Mesh::main()
     if (pcl::io::savePolygonFile(file_name.str(), mesh)) {
         std::cout << "Saved file mesh-responseX.stl" << std::endl;
     }
+
+    pcl::io::savePolygonFilePLY("plyfile.ply", mesh);
 
     return 0;
 }
