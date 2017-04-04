@@ -10,6 +10,7 @@
 
 class Cli {
     public:
+        Cli();
         int main(int argc, char* argv[]);
 
     private:
