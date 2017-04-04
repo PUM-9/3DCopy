@@ -3,8 +3,7 @@
 // Needs the files lamppost.pcd, ism_test_cat.pcd and ism_test_wolf.pcd
 // to send to the meshing service
 //
-#include <vector>
-#include <pcl/point_types.h>
+#include "../include/Mesh.h"
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/vtk_io.h>
 #include <pcl/io/vtk_lib_io.h>
@@ -25,7 +24,7 @@ typedef pcl::PointCloud<pcl::Normal> NormalCloud;
  * @param point_cloud The input point cloud that the normals are generated for
  * @return Returns a NormalCloud::Ptr with the generated normals
  */
-NormalCloud::Ptr estimate_normals(PointCloud::Ptr point_cloud)
+NormalCloud::Ptr Mesh::estimate_normals(PointCloud::Ptr point_cloud)
 {
     std::cout << "Estimating normals" << std::endl;
 
@@ -73,7 +72,7 @@ NormalCloud::Ptr estimate_normals(PointCloud::Ptr point_cloud)
  *             outside the function. This avoids having to return a copy of a PolygonMesh
  *             object which could be very big.
  */
-void poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh)
+void Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh)
 {
 
     std::cout << "Begin poisson surface reconstruction" << std::endl;
@@ -93,7 +92,7 @@ void poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, 
     poisson.reconstruct(mesh);
 }
 
-int main(int argc, char **argv)
+int Mesh::main()
 {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_lamp(new pcl::PointCloud<pcl::PointXYZ>);
