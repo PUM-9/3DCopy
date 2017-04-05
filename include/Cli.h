@@ -19,6 +19,8 @@ class Cli {
         std::string output_filename;
         bool source_is_dir;
         int parse_arguments(int argc, char* argv[]);
+        int parse_option(std::string option);
+        int read_dir(std::string path);
         void print_input();
         bool is_pcd_file(std::string filename);
 };
