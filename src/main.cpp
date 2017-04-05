@@ -1,11 +1,12 @@
 #include <iostream>
 #include "../include/Cli.h"
 #include "../include/Mesh.h"
+#include "../include/Normals.h"
 
 int main() {
     Cli cli;
     Mesh mesh;
-    //std::cout << "Hello, World! " << cli.main() <<  std::endl;
-    mesh.main();
+    Normals normals;
+    normals.main();
     return 0;
 }

@@ -5,14 +5,16 @@
 #include <pcl/point_types.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/visualization/cloud_viewer.h>
-
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/normal_3d_omp.h>
+#include "../include/Normals.h"
+
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::Normal> NormalCloud;
 
-NormalCloud::Ptr estimate_normals(PointCloud::Ptr point_cloud)
+NormalCloud::Ptr
+Normals::estimate_normals (pcl::PointCloud<pcl::PointXYZRGB> point_cloud)
 {
     std::cout << "Estimating normals" << std::endl;
 
@@ -51,37 +53,38 @@ NormalCloud::Ptr estimate_normals(PointCloud::Ptr point_cloud)
     return normals;
 }
 
-int main( int argc, char** argv )
+int Normals::main()
 {
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ> ());
+    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
 
-  if (pcl::io::loadPCDFile (argv[1], *cloud) < 0)
-  {
-    std::cout << "Error loading  cloud." << std::endl;
-    return (-1);
-  }
+    if (pcl::io::loadPCDFile ("ism_test_wolf.pcd", *cloud) < 0)
+    {
+        std::cout << "Error loading  cloud." << std::endl;
+        return (-1);
+    }
 
-    *cloud_normals = estimate_normals(cloud);
-
-  std::cout << "number of points in the cloud " << cloud->points.size() <<std::endl;
-  std::cout << "number of normals in the cloud " << cloud_normals->points.size() <<std::endl;
+    cloud_normals = estimate_normals(cloud);
 
 
-  boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-  viewer->setBackgroundColor (0, 0, 0);
-  pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
-  viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "sample cloud");
-  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
-  viewer->addPointCloudNormals <pcl::PointXYZRGB, pcl::Normal> (cloud, cloud_normals, 30, 0.1, "normals", 0);
-  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 4, "normals");
-  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "normals");
+    std::cout << "number of points in the cloud " << cloud->points.size() <<std::endl;
+    std::cout << "number of normals in the cloud " << cloud_normals->points.size() <<std::endl;
+
+
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
+    viewer->setBackgroundColor (0, 0, 0);
+    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
+    viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "sample cloud");
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
+    viewer->addPointCloudNormals <pcl::PointCloud<pcl::PointXYZRGB>, pcl::Normal> (cloud, cloud_normals, 30, 0.1, "normals", 0);
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 4, "normals");
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "normals");
 
 
 
-  while (!viewer->wasStopped ()) {
-    viewer->spinOnce ();
-  }
+    while (!viewer->wasStopped ()) {
+        viewer->spinOnce ();
+    }
 
-  return 0;
+    return 0;
 }

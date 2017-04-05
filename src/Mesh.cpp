@@ -85,6 +85,7 @@ void Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_c
      * it is also more computaionally heavy.
      */
     poisson.setDepth(10);
+    /*
     poisson.setDegree(2);
     poisson.setSamplesPerNode(1);
     poisson.setIsoDivide(8);
@@ -92,6 +93,7 @@ void Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_c
     poisson.setManifold(false);
     poisson.setOutputPolygons(false);
     poisson.setSolverDivide(8);
+     */
 
     poisson.setInputCloud(point_cloud);
 
@@ -107,8 +109,9 @@ int Mesh::main()
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_wolf(new pcl::PointCloud<pcl::PointXYZ>);
 
     pcl::PCLPointCloud2 cloud_blob;
-    if (pcl::io::loadPCDFile("horse.pcd", cloud_blob) == -1) {
+    if (pcl::io::loadPCDFile("ism_train_horse.pcd", cloud_blob) == -1) {
         std::cout << "Couldn't read file horse.pcd" << std::endl;
+        return -1;
     }
     pcl::fromPCLPointCloud2(cloud_blob, *cloud_lamp);
 
