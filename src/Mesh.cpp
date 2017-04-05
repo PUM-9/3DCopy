@@ -84,7 +84,14 @@ void Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_c
      * A higher value means more iterations which could lead to better results but
      * it is also more computaionally heavy.
      */
-    poisson.setDepth(9);
+    poisson.setDepth(10);
+    poisson.setDegree(2);
+    poisson.setSamplesPerNode(1);
+    poisson.setIsoDivide(8);
+    poisson.setConfidence(false);
+    poisson.setManifold(false);
+    poisson.setOutputPolygons(false);
+    poisson.setSolverDivide(8);
 
     poisson.setInputCloud(point_cloud);
 
@@ -100,8 +107,8 @@ int Mesh::main()
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_wolf(new pcl::PointCloud<pcl::PointXYZ>);
 
     pcl::PCLPointCloud2 cloud_blob;
-    if (pcl::io::loadPCDFile("lamppost.pcd", cloud_blob) == -1) {
-        std::cout << "Couldn't read file bun0.pcd" << std::endl;
+    if (pcl::io::loadPCDFile("horse.pcd", cloud_blob) == -1) {
+        std::cout << "Couldn't read file horse.pcd" << std::endl;
     }
     pcl::fromPCLPointCloud2(cloud_blob, *cloud_lamp);
 
@@ -115,13 +122,11 @@ int Mesh::main()
     poisson_reconstruction(cloud_with_normals, mesh);
 
     std::stringstream file_name;
-    file_name << "lampmesh.stl";
+    file_name << "horsemesh.stl";
 
     if (pcl::io::savePolygonFile(file_name.str(), mesh)) {
-        std::cout << "Saved file mesh-responseX.stl" << std::endl;
+        std::cout << "Saved file horsemesh.stl" << std::endl;
     }
-
-    pcl::io::savePolygonFilePLY("plyfile.ply", mesh);
 
     return 0;
 }
