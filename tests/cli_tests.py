@@ -1,8 +1,8 @@
 import subprocess
 
 test_inputs = [
-    ["./3DCopy", "one.pcd", "two.pcd", "three.pcd", "output"],
-    ["./3DCopy", "one.pcd", "two.pcd", "three.pcd", "output"],
+    ["./3DCopy", "one.pcd", "two.pcd", "three.pcd", "output.pcd"],
+    ["./3DCopy", "one.pcd", "three.pcd", "output"],
     ["./3DCopy", "one.txt", "two.pcd", "three.pcd", "output"],
     ["./3DCopy", "one.pcd", "output.txt"]
     ]
