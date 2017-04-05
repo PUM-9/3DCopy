@@ -2,23 +2,39 @@
 #include "../include/Registration.h"
 #include <pcl/registration/icp.h>
 #include <pcl/PCLPointCloud2.h>
+
 #include <pcl/io/pcd_io.h>
-//#include <pcl/conversions.h>
+#include <vector>
+
+
 
 int Registration::main() {
     return 0;
 }
 
+
+/**
+ *
+ */
+CloudPtr
+Registration::compute(std::vector<CloudPtr> input_pclouds){
+    if(Registration::register_point_clouds(input_pclouds[0],input_pclouds[1])){
+        return nullptr;
+    }
+    return nullptr;
+}
 /**
  * Runs the ICP algorithm to register the given pointclouds.
  *
  * @return True if ICP converges false otherwise
  */
 bool
-Registration::register_point_clouds() {
+Registration::register_point_clouds(CloudPtr source_cloud, CloudPtr target_cloud) {
 
     // Start ICP
-    pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+    pcl::IterativeClosestPoint<Point, Point> icp;
+    CloudPtr target_cloud_new(new Cloud);
+    CloudPtr final_cloud(new Cloud);
 
     // Parameters for the ICP algorithm
     icp.setInputTarget(source_cloud);
@@ -52,7 +68,7 @@ Registration::register_point_clouds() {
 
     pcl::transformPointCloud(*target_cloud, *target_cloud_new, transformationMatrix);
 
-    *final_cloud = *source.point_cloud_ptr + *target.point_cloud_ptr;
+    *final_cloud = *source_cloud + *target_cloud;
 
     pcl::io::savePCDFileASCII("ICP_result.pcd", *final_cloud);
 
