@@ -3,3 +3,4 @@ cmake-build-debug/
 *.o
 .idea/*
 3DCopy
+tests/.idea/

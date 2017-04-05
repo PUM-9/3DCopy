@@ -11,6 +11,7 @@ Cli::Cli() {
 }
 
 int Cli::main(int argc, char **argv) {
+
     if (parse_arguments(argc, argv)) {
         std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
         std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
@@ -19,13 +20,8 @@ int Cli::main(int argc, char **argv) {
         return 0;
     }
 
-    std::cout << "Source is directory: " << source_is_dir << std::endl;
-    std::cout << "Sources:";
-    for (size_t i=0; i < sources.size(); i++) {
-        std::cout << " " << sources.at(i);
-    }
-    std::cout << std::endl;
-    std::cout << "Output filename: " << output_filename << std::endl;
+    print_input();
+
     return 0;
 }
 
@@ -48,7 +44,8 @@ int Cli::read_dir(std::string path) {
 int Cli::parse_arguments(int argc, char **argv) {
 
     // Make sure there is enough arguments
-    if (argc < 3) {
+    if (argc < 4) {
+        std::cout << "To few arguments" << std::endl;
         return 1;
     }
 
@@ -59,6 +56,7 @@ int Cli::parse_arguments(int argc, char **argv) {
     // Read options
     while (!argument.empty() && argument.at(0) == '-') {
         if (parse_option(argument)) {
+            std::cout << "Unrecognized option: " << argument << std::endl;
             return 2;
         }
         counter++;
@@ -71,7 +69,8 @@ int Cli::parse_arguments(int argc, char **argv) {
     } else {
         while (counter < last) {
             // Make sure it's a .pcd file
-            if (argument.substr(argument.find_last_of(".") + 1) != "pcd") {
+            if (is_pcd_file(argument)) {
+                std::cout << "All input files must be .pcd files" << std::endl;
                 return 3;
             }
             sources.push_back(argument);
@@ -84,4 +83,18 @@ int Cli::parse_arguments(int argc, char **argv) {
 
     return 0;
 
+}
+
+void Cli::print_input() {
+    std::cout << "Source is directory: " << source_is_dir << std::endl;
+    std::cout << "Sources:";
+    for (size_t i=0; i < sources.size(); i++) {
+        std::cout << " " << sources.at(i);
+    }
+    std::cout << std::endl;
+    std::cout << "Output filename: " << output_filename << std::endl;
+}
+
+bool Cli::is_pcd_file(std::string filename) {
+    return filename.substr(filename.find_last_of(".") + 1) != "pcd";
 }
