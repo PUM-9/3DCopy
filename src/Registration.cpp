@@ -7,7 +7,7 @@
 
 /**
  *  Registers all the pointclouds in the input vector
- *
+ *  @param Takes a vector of point cloud pointers
  *  @return Returns a pointer to the fully registered point cloud
  */
 CloudPtr
