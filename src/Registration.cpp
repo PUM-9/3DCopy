@@ -12,7 +12,7 @@
  */
 Cloud::Ptr
 Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
-    Cloud::Ptr final_cloud;
+    Cloud::Ptr final_cloud(new Cloud);
     for(Cloud::Ptr cloud : input_pclouds){
         Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
         if(has_converged()){
