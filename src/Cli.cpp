@@ -3,13 +3,17 @@
 //
 
 #include "../include/Cli.h"
-#include <iostream>
+#include "../include/Mesh.h"
+#include <pcl/io/pcd_io.h>
+
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 /**
  *  Default constructor that initializes a few private values.
  */
 Cli::Cli() {
     source_is_dir = false;
+    mesh_only = false;
     sources = std::vector<Path>();
 }
 
@@ -22,11 +26,25 @@ Cli::Cli() {
  */
 int Cli::main(int argc, char **argv) {
 
+    Mesh mesh = Mesh();
+
     if (parse_arguments(argc, argv)) {
         std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
         std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
                 "files." << std::endl;
         std::cout << "-d        source is a directory with the .pcd files." << std::endl;
+        std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
+        return 0;
+    }
+
+    if (mesh_only && !sources.empty()) {
+        PointCloud pointCloud = PointCloud();
+        pcl::io::loadPCDFile(sources.at(0).string(), pointCloud);
+        pcl::PolygonMesh polygonMesh = mesh.mesh(&pointCloud);
+        std::stringstream ss;
+        ss << output_filename << ".stl";
+        pcl::io::save(ss.str(), polygonMesh);
+        std::cout << "Saved mesh to " << ss.str() << std::endl;
         return 0;
     }
 
@@ -44,7 +62,10 @@ int Cli::parse_option(std::string option) {
 
     if (option == "-d") {
         source_is_dir = true;
-    } else {
+    } else if (option == "-m") {
+        mesh_only = true;
+    }
+    else {
         return 1;
     }
 
