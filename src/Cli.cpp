@@ -202,6 +202,10 @@ bool Cli::is_pcd_file(std::string filename) {
     return filename.substr(filename.find_last_of(".") + 1) == "pcd";
 }
 
+/**
+ * Registers the point clouds in sources using the Registration class.
+ * @return The resulting point cloud.
+ */
 PointCloud::Ptr Cli::register_point_clouds() {
     Registration registration = Registration();
     std::vector<PointCloud::Ptr> point_clouds;
@@ -215,6 +219,10 @@ PointCloud::Ptr Cli::register_point_clouds() {
     return registration.register_point_clouds(point_clouds);
 }
 
+/**
+ * Saves the point cloud to a .pcd file accordingly to the input from the user.
+ * @param point_cloud The point cloud to be saved.
+ */
 void Cli::save_point_cloud(const PointCloud::Ptr point_cloud) {
     std::stringstream ss;
     ss << output_filename << ".pcd";
@@ -222,6 +230,10 @@ void Cli::save_point_cloud(const PointCloud::Ptr point_cloud) {
     std::cout << "Saved point cloud to " << ss.str() << std::endl;
 }
 
+/**
+ * Saves a Polygon Mesh to .stl file accordingly to the input from the user.
+ * @param polygon_mesh The Polygon Mesh to be saved.
+ */
 void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
     std::stringstream ss;
     ss << output_filename << ".stl";
