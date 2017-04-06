@@ -15,7 +15,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 Cli::Cli() {
     source_is_dir = false;
     mesh_only = false;
-    register_only = true;
+    register_only = false;
     sources = std::vector<Path>();
 }
 
