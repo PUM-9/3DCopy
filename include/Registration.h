@@ -2,6 +2,7 @@
 #define INC_3DCOPY_REGISTRATION_H
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <vector>
 
 typedef pcl::PointXYZ Point;
 typedef pcl::PointCloud<Point> Cloud;
@@ -13,7 +14,10 @@ public:
     CloudPtr compute(std::vector<CloudPtr> input_pclouds);
 
 private:
-    bool register_point_clouds(CloudPtr source_cloud, CloudPtr target_cloud);
+    bool icp_converged;
+
+    CloudPtr register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud);
+    bool has_converged();
 };
 
 

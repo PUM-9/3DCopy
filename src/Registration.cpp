@@ -1,11 +1,8 @@
 #include <iostream>
 #include "../include/Registration.h"
 #include <pcl/registration/icp.h>
-#include <pcl/PCLPointCloud2.h>
 
 #include <pcl/io/pcd_io.h>
-#include <vector>
-
 
 
 int Registration::main() {
@@ -18,18 +15,25 @@ int Registration::main() {
  */
 CloudPtr
 Registration::compute(std::vector<CloudPtr> input_pclouds){
-    if(Registration::register_point_clouds(input_pclouds[0],input_pclouds[1])){
-        return nullptr;
+    CloudPtr final_cloud;
+    for(CloudPtr cloud : input_pclouds){
+        CloudPtr temp = Registration::register_point_clouds(final_cloud,cloud);
+        if(Registration::has_converged()){
+            final_cloud = temp;
+        } else {
+            std::cout << "ICP did not converge" << std::endl;
+            //throw new ICP_DID_NOT_CONVERGE_EXCEPTION;
+        }
     }
-    return nullptr;
+    return final_cloud;
 }
 /**
  * Runs the ICP algorithm to register the given pointclouds.
  *
- * @return True if ICP converges false otherwise
+ * @return Returns a pointer to the final cloud
  */
-bool
-Registration::register_point_clouds(CloudPtr source_cloud, CloudPtr target_cloud) {
+CloudPtr
+Registration::register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud) {
 
     // Start ICP
     pcl::IterativeClosestPoint<Point, Point> icp;
@@ -58,7 +62,8 @@ Registration::register_point_clouds(CloudPtr source_cloud, CloudPtr target_cloud
         *final_cloud = *source_cloud + *target_cloud;
 
         pcl::io::savePCDFileASCII("ICP_result.pcd", *final_cloud);
-        return true;
+        icp_converged = true;
+        return final_cloud;
     } else {
         std::cout << "ICP did not converge." << std::endl;
     }
@@ -71,7 +76,12 @@ Registration::register_point_clouds(CloudPtr source_cloud, CloudPtr target_cloud
     *final_cloud = *source_cloud + *target_cloud;
 
     pcl::io::savePCDFileASCII("ICP_result.pcd", *final_cloud);
+    icp_converged = false;
+    return final_cloud;
 
-    return false;
+}
 
+bool
+Registration::has_converged(){
+    return icp_converged;
 }
