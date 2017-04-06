@@ -30,7 +30,6 @@ Cli::Cli() {
 int Cli::main(int argc, char **argv) {
 
     Mesh mesh = Mesh();
-    Registration registration = Registration();
 
     if (parse_arguments(argc, argv)) {
         std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
@@ -46,29 +45,17 @@ int Cli::main(int argc, char **argv) {
         PointCloud::Ptr point_cloud_ptr (new PointCloud);
         pcl::io::loadPCDFile(sources.at(0).string(), *point_cloud_ptr);
         pcl::PolygonMesh polygon_mesh = mesh.mesh(point_cloud_ptr);
-        std::stringstream ss;
-        ss << output_filename << ".stl";
-        pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
-        std::cout << "Saved mesh to " << ss.str() << std::endl;
+        save_mesh(polygon_mesh);
         return 0;
     }
 
-    if (register_only && !sources.empty()) {
-        std::vector<PointCloud::Ptr> point_clouds;
-        for (auto it=sources.begin(); it!=sources.end(); ++it) {
-            PointCloud::Ptr point_cloud_ptr (new PointCloud);
-            pcl::io::loadPCDFile((*it).string(), *point_cloud_ptr);
-            point_clouds.push_back(point_cloud_ptr);
-        }
-        std::cout << "Read point clouds" << std::endl;
-        PointCloud::Ptr point_cloud = registration.register_point_clouds(point_clouds);
-        std::stringstream ss;
-        ss << output_filename << ".pcd";
-        pcl::io::savePCDFile(ss.str(), *point_cloud);
-        std::cout << "Saved point cloud to " << ss.str() << std::endl;
-    }
+    PointCloud::Ptr point_cloud = register_point_clouds();
+    save_point_cloud(point_cloud);
 
-    print_input();
+    if (!register_only) {
+        pcl::PolygonMesh polygon_mesh = mesh.mesh(point_cloud);
+        save_mesh(polygon_mesh);
+    }
 
     return 0;
 }
@@ -213,4 +200,31 @@ void Cli::print_input() {
  */
 bool Cli::is_pcd_file(std::string filename) {
     return filename.substr(filename.find_last_of(".") + 1) == "pcd";
+}
+
+PointCloud::Ptr Cli::register_point_clouds() {
+    Registration registration = Registration();
+    std::vector<PointCloud::Ptr> point_clouds;
+
+    for (auto it=sources.begin(); it!=sources.end(); ++it) {
+        PointCloud::Ptr point_cloud_ptr (new PointCloud);
+        pcl::io::loadPCDFile((*it).string(), *point_cloud_ptr);
+        point_clouds.push_back(point_cloud_ptr);
+    }
+    std::cout << "Read point clouds" << std::endl;
+    return registration.register_point_clouds(point_clouds);
+}
+
+void Cli::save_point_cloud(const PointCloud::Ptr point_cloud) {
+    std::stringstream ss;
+    ss << output_filename << ".pcd";
+    pcl::io::savePCDFile(ss.str(), *point_cloud);
+    std::cout << "Saved point cloud to " << ss.str() << std::endl;
+}
+
+void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
+    std::stringstream ss;
+    ss << output_filename << ".stl";
+    pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
+    std::cout << "Saved mesh to " << ss.str() << std::endl;
 }

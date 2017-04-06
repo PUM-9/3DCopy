@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <boost/filesystem.hpp>
+#include <pcl/io/pcd_io.h>
 
 #ifndef INC_3DCOPY_CLI_H
 #define INC_3DCOPY_CLI_H
@@ -31,6 +32,9 @@ class Cli {
         int read_dir(std::string path);
         void print_input();
         bool is_pcd_file(std::string filename);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr register_point_clouds();
+        void save_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud);
+        void save_mesh(const pcl::PolygonMesh polygon_mesh);
 };
 
 
