@@ -1,8 +1,7 @@
-#include <iostream>
 #include "../include/Cli.h"
 #include "../include/Mesh.h"
 
-int main() {
+int main(int argc, char* argv[]) {
     Cli cli;
-    return 0;
+    return cli.main(argc, argv);
 }
