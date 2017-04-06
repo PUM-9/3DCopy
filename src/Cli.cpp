@@ -14,7 +14,7 @@ Cli::Cli() {
 }
 
 /**
- * The main method that takes in the output and runs the program. Right now it only prints the input but it's here
+ * The main method that takes in the arguments and runs the program. Right now it only prints the inputed arguments but it's here
  * the execution of the rest of the program should be implemented.
  * @param argc the number of arguments
  * @param argv list of arguments
