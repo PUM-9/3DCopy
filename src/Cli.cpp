@@ -122,7 +122,7 @@ int Cli::parse_arguments(int argc, char **argv) {
     } else {
         while (counter < last) {
             // Make sure it's a .pcd file
-            if (is_pcd_file(argument)) {
+            if (!is_pcd_file(argument)) {
                 std::cout << "All input files must be .pcd files" << std::endl;
                 return 3;
             }
@@ -167,5 +167,5 @@ void Cli::print_input() {
  * @return True if it is a pcd file false otherwise.
  */
 bool Cli::is_pcd_file(std::string filename) {
-    return filename.substr(filename.find_last_of(".") + 1) != "pcd";
+    return filename.substr(filename.find_last_of(".") + 1) == "pcd";
 }
