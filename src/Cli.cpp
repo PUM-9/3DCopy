@@ -5,7 +5,6 @@
 #include "../include/Cli.h"
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
-#include <pcl/io/pcd_io.h>
 #include <pcl/io/vtk_lib_io.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
