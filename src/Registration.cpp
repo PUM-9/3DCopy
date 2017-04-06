@@ -5,13 +5,10 @@
 #include <pcl/io/pcd_io.h>
 
 
-int Registration::main() {
-    return 0;
-}
-
-
 /**
+ *  Registers all the pointclouds in the input vector
  *
+ *  @return Returns a pointer to the fully registered point cloud
  */
 CloudPtr
 Registration::compute(std::vector<CloudPtr> input_pclouds){
@@ -29,7 +26,7 @@ Registration::compute(std::vector<CloudPtr> input_pclouds){
 }
 /**
  * Runs the ICP algorithm to register the given pointclouds.
- *
+ * @param Takes a target_cloud and a source_cloud to be matched to target
  * @return Returns a pointer to the final cloud
  */
 CloudPtr
@@ -50,7 +47,7 @@ Registration::register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud
     icp.align(*target_cloud);
 
     if (icp.hasConverged()) {
-        std::cout << "ICP converged." << std::endl
+        std::cout << "ICP converged/success." << std::endl
                   << "The score is " << icp.getFitnessScore() << std::endl;
         std::cout << "Transformation matrix:" << std::endl;
         std::cout << icp.getFinalTransformation() << std::endl;
@@ -65,7 +62,8 @@ Registration::register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud
         icp_converged = true;
         return final_cloud;
     } else {
-        std::cout << "ICP did not converge." << std::endl;
+        std::cout << "ICP did not converge./FAILED" << std::endl;
+        icp_converged = false;
     }
 
     Eigen::Matrix4f transformationMatrix = icp.getFinalTransformation();
@@ -76,7 +74,6 @@ Registration::register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud
     *final_cloud = *source_cloud + *target_cloud;
 
     pcl::io::savePCDFileASCII("ICP_result.pcd", *final_cloud);
-    icp_converged = false;
     return final_cloud;
 
 }
