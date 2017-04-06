@@ -8,7 +8,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-set(SOURCE_FILES src/main.cpp src/Cli.cpp src/Mesh.cpp)
+set(SOURCE_FILES src/main.cpp src/Cli.cpp src/Mesh.cpp src/Registration.cpp)
 add_executable(3DCopy ${SOURCE_FILES})
 
-target_link_libraries(3DCopy ${PCL_COMMON_LIBRARIES} ${PCL_IO_LIBRARIES} ${PCL_SEARCH_LIBRARY} ${PCL_SURFACE_LIBRARY} ${PCL_FEATURES_LIBRARY})
+target_link_libraries(3DCopy ${PCL_LIBRARIES})
