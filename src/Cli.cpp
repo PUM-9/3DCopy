@@ -38,7 +38,7 @@ int Cli::main(int argc, char **argv) {
  * Parse the input from the command line and saving it to local fields.
  * @param argc the number of arguments
  * @param argv list of arguments
- * @return exit_code 0 if everything whent ok outherwise non-zero.
+ * @return exit_code 0 if everything went ok otherwise non-zero.
  */
 int Cli::parse_arguments(int argc, char **argv) {
 
