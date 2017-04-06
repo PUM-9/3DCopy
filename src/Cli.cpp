@@ -18,7 +18,7 @@ Cli::Cli() {
  * the execution of the rest of the program should be implemented.
  * @param argc the number of arguments
  * @param argv list of arguments
- * @return exit_code 0 if everything whent ok otherwise non-zero.
+ * @return exit_code 0 if everything went ok otherwise non-zero.
  */
 int Cli::main(int argc, char **argv) {
 
@@ -38,7 +38,7 @@ int Cli::main(int argc, char **argv) {
 /**
  * Parses option and sets internal fields accordingly.
  * @param option The option to parse
- * @return error code 0 if everything whent ok otherwise non-zero.
+ * @return error code 0 if everything went ok otherwise non-zero.
  */
 int Cli::parse_option(std::string option) {
 
@@ -55,7 +55,7 @@ int Cli::parse_option(std::string option) {
 /**
  * Reads in all the files from a directory and if they are pcd files they are added to sources.
  * @param dir path to the directory.
- * @return error code 0 if everything whent ok non-zero otherwise.
+ * @return error code 0 if everything went ok non-zero otherwise.
  */
 int Cli::read_dir(std::string dir) {
 
@@ -92,7 +92,7 @@ int Cli::read_dir(std::string dir) {
  * Parse the input from the command line and saving it to local fields.
  * @param argc the number of arguments
  * @param argv list of arguments
- * @return exit_code 0 if everything whent ok outherwise non-zero.
+ * @return exit_code 0 if everything went ok outherwise non-zero.
  */
 int Cli::parse_arguments(int argc, char **argv) {
 
