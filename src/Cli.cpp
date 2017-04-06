@@ -4,6 +4,7 @@
 
 #include "../include/Cli.h"
 #include "../include/Mesh.h"
+#include "../include/Registration.h"
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/vtk_lib_io.h>
 
@@ -15,6 +16,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 Cli::Cli() {
     source_is_dir = false;
     mesh_only = false;
+    register_only = true;
     sources = std::vector<Path>();
 }
 
@@ -28,6 +30,7 @@ Cli::Cli() {
 int Cli::main(int argc, char **argv) {
 
     Mesh mesh = Mesh();
+    Registration registration = Registration();
 
     if (parse_arguments(argc, argv)) {
         std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
@@ -35,6 +38,7 @@ int Cli::main(int argc, char **argv) {
                 "files." << std::endl;
         std::cout << "-d        source is a directory with the .pcd files." << std::endl;
         std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
+        std::cout << "-r        just registers the given point clouds, skips meshing." << std::endl;
         return 0;
     }
 
@@ -47,6 +51,21 @@ int Cli::main(int argc, char **argv) {
         pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
         std::cout << "Saved mesh to " << ss.str() << std::endl;
         return 0;
+    }
+
+    if (register_only && !sources.empty()) {
+        std::vector<PointCloud::Ptr> point_clouds;
+        for (auto it=sources.begin(); it!=sources.end(); ++it) {
+            PointCloud::Ptr point_cloud_ptr (new PointCloud);
+            pcl::io::loadPCDFile((*it).string(), *point_cloud_ptr);
+            point_clouds.push_back(point_cloud_ptr);
+        }
+        std::cout << "Read point clouds" << std::endl;
+        PointCloud::Ptr point_cloud = registration.register_point_clouds(point_clouds);
+        std::stringstream ss;
+        ss << output_filename << ".pcd";
+        pcl::io::savePCDFile(ss.str(), *point_cloud);
+        std::cout << "Saved point cloud to " << ss.str() << std::endl;
     }
 
     print_input();
@@ -65,6 +84,10 @@ int Cli::parse_option(std::string option) {
         source_is_dir = true;
     } else if (option == "-m") {
         mesh_only = true;
+        register_only = false;
+    } else if (option == "-r") {
+        register_only = true;
+        mesh_only = false;
     }
     else {
         return 1;
