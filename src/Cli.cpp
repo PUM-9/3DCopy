@@ -4,13 +4,16 @@
 
 #include "../include/Cli.h"
 #include <iostream>
+#include <iterator>
+#include <algorithm>
+#include <boost/filesystem.hpp>
 
 /**
  *  Default constructor that initializes a few private values.
  */
 Cli::Cli() {
     source_is_dir = false;
-    sources = std::vector<std::string>();
+    sources = std::vector<Path>();
 }
 
 /**
@@ -47,8 +50,30 @@ int Cli::parse_option(std::string option) {
 
 }
 
-int Cli::read_dir(std::string path) {
-    // http://www.boost.org/doc/libs/1_57_0/libs/filesystem/example/tut3.cpp
+int Cli::read_dir(std::string dir) {
+
+    Path path = Path(dir);
+
+    try {
+        if (boost::filesystem::exists(path)) {
+            if (boost::filesystem::is_regular_file(path)) {
+                sources.push_back(path);
+                return 0;
+            } else if (boost::filesystem::is_directory(path)) {
+
+                boost::filesystem::directory_iterator it = boost::filesystem::directory_iterator(path);
+                boost::filesystem::directory_iterator end;
+                for (it; it != end; ++it) {
+                    sources.push_back(it->path());
+                }
+
+            }
+        }
+    } catch (const boost::filesystem::filesystem_error& ex) {
+        std::cout << ex.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
 
@@ -90,10 +115,20 @@ int Cli::parse_arguments(int argc, char **argv) {
                 std::cout << "All input files must be .pcd files" << std::endl;
                 return 3;
             }
-            sources.push_back(argument);
+            Path path = Path(argument);
+            if (boost::filesystem::exists(path)) {
+                sources.push_back(path);
+            } else {
+                std::cout << "File not found: " << path << std::endl;
+            }
             counter++;
             argument = std::string(argv[counter]);
         }
+    }
+
+    if (sources.empty()) {
+        std::cout << "No sources found" << std::endl;
+        return 4;
     }
 
     output_filename = std::string(argv[last]);
