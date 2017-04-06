@@ -10,11 +10,11 @@
  */
 Cli::Cli() {
     source_is_dir = false;
-    sources = std::vector<std::string>();
+    sources = std::vector<Path>();
 }
 
 /**
- * The main method that takes in the output and runs the program. Right now it only prints the input but it's here
+ * The main method that takes in the arguments and runs the program. Right now it only prints the inputed arguments but it's here
  * the execution of the rest of the program should be implemented.
  * @param argc the number of arguments
  * @param argv list of arguments
@@ -23,13 +23,67 @@ Cli::Cli() {
 int Cli::main(int argc, char **argv) {
 
     if (parse_arguments(argc, argv)) {
-        std::cout << "Usage: " << argv[0] << " source1:source2... output_filename" << std::endl;
+        std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
         std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
                 "files." << std::endl;
+        std::cout << "-d        source is a directory with the .pcd files." << std::endl;
         return 0;
     }
 
     print_input();
+
+    return 0;
+}
+
+/**
+ * Parses option and sets internal fields accordingly.
+ * @param option The option to parse
+ * @return error code 0 if everything went ok otherwise non-zero.
+ */
+int Cli::parse_option(std::string option) {
+
+    if (option == "-d") {
+        source_is_dir = true;
+    } else {
+        return 1;
+    }
+
+    return 0;
+
+}
+
+/**
+ * Reads in all the files from a directory and if they are pcd files they are added to sources.
+ * @param dir path to the directory.
+ * @return error code 0 if everything went ok non-zero otherwise.
+ */
+int Cli::read_dir(std::string dir) {
+
+    Path path = Path(dir);
+
+    try {
+        if (boost::filesystem::exists(path)) {
+            if (boost::filesystem::is_regular_file(path)) {
+                sources.push_back(path);
+                return 0;
+            } else if (boost::filesystem::is_directory(path)) {
+
+                boost::filesystem::directory_iterator it = boost::filesystem::directory_iterator(path);
+                boost::filesystem::directory_iterator end;
+                for (it; it != end; ++it) {
+                    if (is_pcd_file(it->path().string())) {
+                        sources.push_back(it->path());
+                    } else {
+                        std::cout << it->path() << " is not a pcd file." << std::endl;
+                    }
+                }
+
+            }
+        }
+    } catch (const boost::filesystem::filesystem_error& ex) {
+        std::cout << ex.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }
@@ -52,16 +106,40 @@ int Cli::parse_arguments(int argc, char **argv) {
     int last = argc-1;
     std::string argument = std::string(argv[counter]);
 
-    //Read sources
-    while (counter < last) {
-        // Make sure it's a .pcd file
-        if (is_pcd_file(argument)) {
-            std::cout << "All input files must be .pcd files" << std::endl;
-            return 3;
+    // Read options
+    while (!argument.empty() && argument.at(0) == '-') {
+        if (parse_option(argument)) {
+            std::cout << "Unrecognized option: " << argument << std::endl;
+            return 2;
         }
-        sources.push_back(argument);
         counter++;
         argument = std::string(argv[counter]);
+    }
+
+    //Read sources
+    if (source_is_dir) {
+        read_dir(argument);
+    } else {
+        while (counter < last) {
+            // Make sure it's a .pcd file
+            if (!is_pcd_file(argument)) {
+                std::cout << "All input files must be .pcd files" << std::endl;
+                return 3;
+            }
+            Path path = Path(argument);
+            if (boost::filesystem::exists(path)) {
+                sources.push_back(path);
+            } else {
+                std::cout << "File not found: " << path << std::endl;
+            }
+            counter++;
+            argument = std::string(argv[counter]);
+        }
+    }
+
+    if (sources.empty()) {
+        std::cout << "No sources found" << std::endl;
+        return 4;
     }
 
     output_filename = std::string(argv[last]);
@@ -74,6 +152,7 @@ int Cli::parse_arguments(int argc, char **argv) {
  * Prints the local variables read in from the command line used for debugging and testing.
  */
 void Cli::print_input() {
+    std::cout << "Source is directory: " << source_is_dir << std::endl;
     std::cout << "Sources:";
     for (size_t i=0; i < sources.size(); i++) {
         std::cout << " " << sources.at(i);
@@ -88,5 +167,5 @@ void Cli::print_input() {
  * @return True if it is a pcd file false otherwise.
  */
 bool Cli::is_pcd_file(std::string filename) {
-    return filename.substr(filename.find_last_of(".") + 1) != "pcd";
+    return filename.substr(filename.find_last_of(".") + 1) == "pcd";
 }
