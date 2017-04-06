@@ -5,6 +5,7 @@
 #include "../include/Cli.h"
 #include "../include/Mesh.h"
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/vtk_lib_io.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
@@ -38,13 +39,12 @@ int Cli::main(int argc, char **argv) {
     }
 
     if (mesh_only && !sources.empty()) {
-        PointCloud point_cloud = PointCloud();
-        PointCloud::Ptr point_cloud_ptr(&point_cloud);
-        pcl::io::loadPCDFile(sources.at(0).string(), point_cloud);
+        PointCloud::Ptr point_cloud_ptr (new PointCloud);
+        pcl::io::loadPCDFile(sources.at(0).string(), *point_cloud_ptr);
         pcl::PolygonMesh polygon_mesh = mesh.mesh(point_cloud_ptr);
         std::stringstream ss;
         ss << output_filename << ".stl";
-        pcl::io::save(ss.str(), polygon_mesh);
+        pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
         std::cout << "Saved mesh to " << ss.str() << std::endl;
         return 0;
     }
