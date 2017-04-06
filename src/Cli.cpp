@@ -3,13 +3,19 @@
 //
 
 #include "../include/Cli.h"
-#include <iostream>
+#include "../include/Mesh.h"
+#include "../include/Registration.h"
+#include <pcl/io/vtk_lib_io.h>
+
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 /**
  *  Default constructor that initializes a few private values.
  */
 Cli::Cli() {
     source_is_dir = false;
+    mesh_only = false;
+    register_only = false;
     sources = std::vector<Path>();
 }
 
@@ -22,15 +28,33 @@ Cli::Cli() {
  */
 int Cli::main(int argc, char **argv) {
 
+    Mesh mesh = Mesh();
+
     if (parse_arguments(argc, argv)) {
         std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
         std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
                 "files." << std::endl;
         std::cout << "-d        source is a directory with the .pcd files." << std::endl;
+        std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
+        std::cout << "-r        just registers the given point clouds, skips meshing." << std::endl;
         return 0;
     }
 
-    print_input();
+    if (mesh_only && !sources.empty()) {
+        PointCloud::Ptr point_cloud_ptr (new PointCloud);
+        pcl::io::loadPCDFile(sources.at(0).string(), *point_cloud_ptr);
+        pcl::PolygonMesh polygon_mesh = mesh.mesh(point_cloud_ptr);
+        save_mesh(polygon_mesh);
+        return 0;
+    }
+
+    PointCloud::Ptr point_cloud = register_point_clouds();
+    save_point_cloud(point_cloud);
+
+    if (!register_only) {
+        pcl::PolygonMesh polygon_mesh = mesh.mesh(point_cloud);
+        save_mesh(polygon_mesh);
+    }
 
     return 0;
 }
@@ -44,7 +68,14 @@ int Cli::parse_option(std::string option) {
 
     if (option == "-d") {
         source_is_dir = true;
-    } else {
+    } else if (option == "-m") {
+        mesh_only = true;
+        register_only = false;
+    } else if (option == "-r") {
+        register_only = true;
+        mesh_only = false;
+    }
+    else {
         return 1;
     }
 
@@ -168,4 +199,43 @@ void Cli::print_input() {
  */
 bool Cli::is_pcd_file(std::string filename) {
     return filename.substr(filename.find_last_of(".") + 1) == "pcd";
+}
+
+/**
+ * Registers the point clouds in sources using the Registration class.
+ * @return The resulting point cloud.
+ */
+PointCloud::Ptr Cli::register_point_clouds() {
+    Registration registration = Registration();
+    std::vector<PointCloud::Ptr> point_clouds;
+
+    for (auto it=sources.begin(); it!=sources.end(); ++it) {
+        PointCloud::Ptr point_cloud_ptr (new PointCloud);
+        pcl::io::loadPCDFile((*it).string(), *point_cloud_ptr);
+        point_clouds.push_back(point_cloud_ptr);
+    }
+    std::cout << "Read point clouds" << std::endl;
+    return registration.register_point_clouds(point_clouds);
+}
+
+/**
+ * Saves the point cloud to a .pcd file accordingly to the input from the user.
+ * @param point_cloud The point cloud to be saved.
+ */
+void Cli::save_point_cloud(const PointCloud::Ptr point_cloud) {
+    std::stringstream ss;
+    ss << output_filename << ".pcd";
+    pcl::io::savePCDFile(ss.str(), *point_cloud);
+    std::cout << "Saved point cloud to " << ss.str() << std::endl;
+}
+
+/**
+ * Saves a Polygon Mesh to .stl file accordingly to the input from the user.
+ * @param polygon_mesh The Polygon Mesh to be saved.
+ */
+void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
+    std::stringstream ss;
+    ss << output_filename << ".stl";
+    pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
+    std::cout << "Saved mesh to " << ss.str() << std::endl;
 }
