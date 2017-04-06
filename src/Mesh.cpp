@@ -1,18 +1,6 @@
-//
-// A client that calls the mesh service to test it
-// Needs the files lamppost.pcd, ism_test_cat.pcd and ism_test_wolf.pcd
-// to send to the meshing service
-//
 #include "../include/Mesh.h"
 #include <pcl/io/pcd_io.h>
-#include <pcl/io/vtk_io.h>
-#include <pcl/io/vtk_lib_io.h>
-#include <pcl/search/kdtree.h>
-#include <pcl/search/organized.h>
 #include <pcl/features/normal_3d_omp.h>
-#include <pcl/surface/gp3.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/surface/poisson.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -24,7 +12,8 @@ typedef pcl::PointCloud<pcl::Normal> NormalCloud;
  * @param point_cloud The input point cloud that the normals are generated for
  * @return Returns a NormalCloud::Ptr with the generated normals
  */
-NormalCloud::Ptr Mesh::estimate_normals(PointCloud::Ptr point_cloud)
+NormalCloud::Ptr
+Mesh::estimate_normals(const PointCloud::Ptr point_cloud)
 {
     std::cout << "Estimating normals" << std::endl;
 
@@ -72,7 +61,8 @@ NormalCloud::Ptr Mesh::estimate_normals(PointCloud::Ptr point_cloud)
  *             outside the function. This avoids having to return a copy of a PolygonMesh
  *             object which could be very big.
  */
-void Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh)
+void
+Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh)
 {
 
     std::cout << "Begin poisson surface reconstruction" << std::endl;
@@ -82,54 +72,35 @@ void Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_c
     /*
      * Set the maximum depth of the tree used in Poisson surface reconstruction.
      * A higher value means more iterations which could lead to better results but
-     * it is also more computaionally heavy.
+     * it is also more computationally heavy.
      */
     poisson.setDepth(10);
-    /*
-    poisson.setDegree(2);
-    poisson.setSamplesPerNode(1);
-    poisson.setIsoDivide(8);
-    poisson.setConfidence(false);
-    poisson.setManifold(false);
-    poisson.setOutputPolygons(false);
-    poisson.setSolverDivide(8);
-     */
-
     poisson.setInputCloud(point_cloud);
 
     // Perform the Poisson surface reconstruction algorithm
     poisson.reconstruct(mesh);
 }
 
-int Mesh::main()
+/**
+ * Reconstruct a point cloud to a mesh by estimate the normals of the point cloud
+ *
+ * @param point_cloud The input point cloud that will be reconstructed
+ * @return Returns a reconstructed mesh
+ */
+pcl::PolygonMesh
+Mesh::mesh(const PointCloud::Ptr point_cloud)
 {
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_lamp(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cat(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_wolf(new pcl::PointCloud<pcl::PointXYZ>);
-
-    pcl::PCLPointCloud2 cloud_blob;
-    if (pcl::io::loadPCDFile("ism_train_horse.pcd", cloud_blob) == -1) {
-        std::cout << "Couldn't read file horse.pcd" << std::endl;
-        return -1;
-    }
-    pcl::fromPCLPointCloud2(cloud_blob, *cloud_lamp);
-
-    NormalCloud::Ptr normals = estimate_normals(cloud_lamp);
+    // Estimate the normals of the point cloud
+    NormalCloud::Ptr normals = estimate_normals(point_cloud);
 
     // Add the normals to the point cloud
     pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::concatenateFields(*cloud_lamp, *normals, *cloud_with_normals);
+    pcl::concatenateFields(*point_cloud, *normals, *cloud_with_normals);
 
+    // Point cloud to mesh reconstruction
     pcl::PolygonMesh mesh;
     poisson_reconstruction(cloud_with_normals, mesh);
 
-    std::stringstream file_name;
-    file_name << "horsemesh.stl";
-
-    if (pcl::io::savePolygonFile(file_name.str(), mesh)) {
-        std::cout << "Saved file horsemesh.stl" << std::endl;
-    }
-
-    return 0;
+    return mesh;
 }
