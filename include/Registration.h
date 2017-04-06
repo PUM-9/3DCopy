@@ -4,19 +4,19 @@
 #include <pcl/point_cloud.h>
 #include <vector>
 
-typedef pcl::PointXYZ Point;
-typedef pcl::PointCloud<Point> Cloud;
-typedef Cloud::Ptr CloudPtr;
+typedef pcl::PointCloud<pcl::PointXYZ> Cloud;
 
 class Registration {
 public:
-    int main();
-    CloudPtr compute(std::vector<CloudPtr> input_pclouds);
+    //Methods
+    Cloud::Ptr register_point_clouds(std::vector<Cloud::Ptr> input_pclouds);
 
 private:
+    //Data fields
     bool icp_converged;
 
-    CloudPtr register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud);
+    //Methods
+    Cloud::Ptr add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud);
     bool has_converged();
 };
 

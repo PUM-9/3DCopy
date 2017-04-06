@@ -7,35 +7,35 @@
 
 /**
  *  Registers all the pointclouds in the input vector
- *  @param Takes a vector of point cloud pointers
+ *  @param input_pclouds Vector of point cloud pointers,
  *  @return Returns a pointer to the fully registered point cloud
  */
-CloudPtr
-Registration::compute(std::vector<CloudPtr> input_pclouds){
-    CloudPtr final_cloud;
-    for(CloudPtr cloud : input_pclouds){
-        CloudPtr temp = Registration::register_point_clouds(final_cloud,cloud);
-        if(Registration::has_converged()){
+Cloud::Ptr
+Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
+    Cloud::Ptr final_cloud;
+    for(Cloud::Ptr cloud : input_pclouds){
+        Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
+        if(has_converged()){
             final_cloud = temp;
         } else {
             std::cout << "ICP did not converge" << std::endl;
-            //throw new ICP_DID_NOT_CONVERGE_EXCEPTION;
         }
     }
     return final_cloud;
 }
 /**
  * Runs the ICP algorithm to register the given pointclouds.
- * @param Takes a target_cloud and a source_cloud to be matched to target
+ * @param target_cloud Target cloud, will not be moved
+ * @param source_cloud Source cloud, will be moved to match target
  * @return Returns a pointer to the final cloud
  */
-CloudPtr
-Registration::register_point_clouds(CloudPtr target_cloud, CloudPtr source_cloud) {
+Cloud::Ptr
+Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud) {
 
     // Start ICP
-    pcl::IterativeClosestPoint<Point, Point> icp;
-    CloudPtr target_cloud_new(new Cloud);
-    CloudPtr final_cloud(new Cloud);
+    pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+    Cloud::Ptr target_cloud_new(new Cloud);
+    Cloud::Ptr final_cloud(new Cloud);
 
     // Parameters for the ICP algorithm
     icp.setInputTarget(source_cloud);
