@@ -4,9 +4,6 @@
 
 #include "../include/Cli.h"
 #include <iostream>
-#include <iterator>
-#include <algorithm>
-#include <boost/filesystem.hpp>
 
 /**
  *  Default constructor that initializes a few private values.
