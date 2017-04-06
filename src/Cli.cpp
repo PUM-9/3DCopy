@@ -38,6 +38,11 @@ int Cli::main(int argc, char **argv) {
     return 0;
 }
 
+/**
+ * Parses option and sets internal fields accordingly.
+ * @param option The option to parse
+ * @return error code 0 if everything whent ok otherwise non-zero.
+ */
 int Cli::parse_option(std::string option) {
 
     if (option == "-d") {
@@ -50,6 +55,11 @@ int Cli::parse_option(std::string option) {
 
 }
 
+/**
+ * Reads in all the files from a directory and if they are pcd files they are added to sources.
+ * @param dir path to the directory.
+ * @return error code 0 if everything whent ok non-zero otherwise.
+ */
 int Cli::read_dir(std::string dir) {
 
     Path path = Path(dir);
@@ -64,7 +74,11 @@ int Cli::read_dir(std::string dir) {
                 boost::filesystem::directory_iterator it = boost::filesystem::directory_iterator(path);
                 boost::filesystem::directory_iterator end;
                 for (it; it != end; ++it) {
-                    sources.push_back(it->path());
+                    if (is_pcd_file(it->path().string())) {
+                        sources.push_back(it->path());
+                    } else {
+                        std::cout << it->path() << " is not a pcd file." << std::endl;
+                    }
                 }
 
             }
