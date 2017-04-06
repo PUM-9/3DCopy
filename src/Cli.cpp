@@ -18,7 +18,7 @@ Cli::Cli() {
  * the execution of the rest of the program should be implemented.
  * @param argc the number of arguments
  * @param argv list of arguments
- * @return exit_code 0 if everything whent ok otherwise non-zero.
+ * @return exit_code 0 if everything went ok otherwise non-zero.
  */
 int Cli::main(int argc, char **argv) {
 
