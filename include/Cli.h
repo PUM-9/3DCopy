@@ -10,7 +10,7 @@
 #ifndef INC_3DCOPY_CLI_H
 #define INC_3DCOPY_CLI_H
 
-typedef boost::filesystem::path Path;
+namespace fs = boost::filesystem;
 
 class Cli {
     public:
@@ -20,7 +20,7 @@ class Cli {
 
     private:
         // Fields
-        std::vector<Path> sources;
+        std::vector<fs::path> sources;
         std::string output_filename;
         bool source_is_dir;
         bool mesh_only;
@@ -29,9 +29,9 @@ class Cli {
         // Methods
         int parse_arguments(int argc, char* argv[]);
         int parse_option(std::string option);
-        int read_dir(std::string path);
+        int read_dir(fs::path path);
         void print_input();
-        bool is_pcd_file(std::string filename);
+        void add_source(fs::path path);
         pcl::PointCloud<pcl::PointXYZ>::Ptr register_point_clouds();
         void save_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud);
         void save_mesh(const pcl::PolygonMesh polygon_mesh);
