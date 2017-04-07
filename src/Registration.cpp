@@ -12,7 +12,7 @@
  */
 Cloud::Ptr
 Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
-    Cloud::Ptr final_cloud(new Cloud);
+    Cloud::Ptr final_cloud = input_pclouds[0];
     for(Cloud::Ptr cloud : input_pclouds){
         Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
         if(has_converged()){
@@ -44,6 +44,7 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
     icp.setTransformationEpsilon(1e-7);
     icp.setMaxCorrespondenceDistance(3);
 
+
     icp.align(*target_cloud);
 
     if (icp.hasConverged()) {
@@ -52,7 +53,7 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
         std::cout << "Transformation matrix:" << std::endl;
         std::cout << icp.getFinalTransformation() << std::endl;
         Eigen::Matrix4f transformationMatrix = icp.getFinalTransformation();
-        std::cout << "trans %n" << transformationMatrix << std::endl;
+        std::cout << "trans \n" << transformationMatrix << std::endl;
 
         pcl::transformPointCloud(*target_cloud, *target_cloud_new, transformationMatrix);
 
@@ -67,7 +68,7 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
     }
 
     Eigen::Matrix4f transformationMatrix = icp.getFinalTransformation();
-    std::cout << "trans %n" << transformationMatrix << std::endl;
+    std::cout << "trans \n" << transformationMatrix << std::endl;
 
     pcl::transformPointCloud(*target_cloud, *target_cloud_new, transformationMatrix);
 
