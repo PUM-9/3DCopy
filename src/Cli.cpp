@@ -37,6 +37,7 @@ int Cli::main(int argc, char **argv) {
                 "files." << std::endl;
         std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
         std::cout << "-r        just registers the given point clouds, skips meshing." << std::endl;
+        std::cout << "-v        Verbose, makes the program tell you more about what it is doing." << std::endl;
         return 0;
     }
 
