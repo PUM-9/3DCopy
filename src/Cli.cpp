@@ -100,8 +100,6 @@ int Cli::read_dir(fs::path path) {
             for (it; it != end; ++it) {
                 if (fs::is_regular_file(it->path())) {
                     add_source(it->path());
-                } else if (fs::is_directory(it->path())) {
-                    read_dir(it->path());
                 }
             }
 
