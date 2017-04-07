@@ -22,9 +22,9 @@ class Cli {
         // Fields
         std::vector<fs::path> sources;
         std::string output_filename;
-        bool source_is_dir;
         bool mesh_only;
         bool register_only;
+        bool verbose;
 
         // Methods
         int parse_arguments(int argc, char* argv[]);

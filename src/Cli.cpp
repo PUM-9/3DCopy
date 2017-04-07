@@ -14,9 +14,9 @@ namespace fs = boost::filesystem;
  *  Default constructor that initializes a few private values.
  */
 Cli::Cli() {
-    source_is_dir = false;
     mesh_only = false;
     register_only = false;
+    verbose = false;
     sources = std::vector<fs::path>();
 }
 
@@ -72,6 +72,8 @@ int Cli::parse_option(std::string option) {
     } else if (option == "-r") {
         register_only = true;
         mesh_only = false;
+    } else if (option == "-v") {
+        verbose = true;
     }
     else {
         return 1;
@@ -168,6 +170,10 @@ int Cli::parse_arguments(int argc, char **argv) {
 
     output_filename = std::string(argv[last]);
 
+    if (verbose) {
+        print_input();
+    }
+
     return 0;
 
 }
@@ -176,8 +182,7 @@ int Cli::parse_arguments(int argc, char **argv) {
  * Prints the local variables read in from the command line used for debugging and testing.
  */
 void Cli::print_input() {
-    std::cout << "Source is directory: " << source_is_dir << std::endl;
-    std::cout << "Sources:";
+    std::cout << "Read sources:";
     for (size_t i=0; i < sources.size(); i++) {
         std::cout << " " << sources.at(i);
     }
@@ -185,6 +190,10 @@ void Cli::print_input() {
     std::cout << "Output filename: " << output_filename << std::endl;
 }
 
+/**
+ * Adds a file to sources after it has made sure the file exists and is a pcd file.
+ * @param path The file path to be added to sources.
+ */
 void Cli::add_source(fs::path path) {
     if (fs::exists(path)) {
         if (fs::extension(path) == ".pcd") {
