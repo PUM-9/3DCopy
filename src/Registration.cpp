@@ -40,9 +40,9 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
     // Parameters for the ICP algorithm
     icp.setInputTarget(source_cloud);
     icp.setInputSource(target_cloud);
-    icp.setMaximumIterations(25);
-    icp.setTransformationEpsilon(1e-7);
-    icp.setMaxCorrespondenceDistance(3);
+    icp.setMaximumIterations(this->max_iterations);
+    icp.setTransformationEpsilon(this->transformation_epsilon);
+    icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
 
 
     icp.align(*target_cloud);
@@ -82,4 +82,34 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
 bool
 Registration::has_converged(){
     return icp_converged;
+}
+
+void
+Registration::set_max_correspondence_distance(double distance){
+    this->max_correspondence_distance = distance;
+}
+
+void
+Registration::set_max_iterations(int iter){
+    this->max_iterations = iter;
+}
+
+void
+Registration::set_transformation_epsilon(double epsilon){
+    this->transformation_epsilon = epsilon;
+}
+
+int
+Registration::get_max_iterations(){
+    return this->max_iterations;
+}
+
+double
+Registration::get_max_correspondence_distance(){
+    return this->max_correspondence_distance;
+}
+
+double
+Registration::get_transformation_epsilon(){
+    return this->transformation_epsilon;
 }
