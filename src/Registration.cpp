@@ -113,3 +113,13 @@ double
 Registration::get_transformation_epsilon(){
     return this->transformation_epsilon;
 }
+
+void
+Registration::set_verbose_mode(bool mode){
+    this->verbose = mode;
+}
+
+bool
+Registration::get_verbose_mode(){
+    return this->verbose;
+}
