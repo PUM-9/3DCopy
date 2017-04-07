@@ -5,3 +5,4 @@ cmake-build-debug/
 3DCopy
 tests/.idea/
 .DS_Store
+*.pcd
