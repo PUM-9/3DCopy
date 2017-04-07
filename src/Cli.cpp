@@ -8,15 +8,16 @@
 #include <pcl/io/vtk_lib_io.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+namespace fs = boost::filesystem;
 
 /**
  *  Default constructor that initializes a few private values.
  */
 Cli::Cli() {
-    source_is_dir = false;
     mesh_only = false;
     register_only = false;
-    sources = std::vector<Path>();
+    verbose = false;
+    sources = std::vector<fs::path>();
 }
 
 /**
@@ -34,9 +35,9 @@ int Cli::main(int argc, char **argv) {
         std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
         std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
                 "files." << std::endl;
-        std::cout << "-d        source is a directory with the .pcd files." << std::endl;
         std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
         std::cout << "-r        just registers the given point clouds, skips meshing." << std::endl;
+        std::cout << "-v        Verbose, makes the program tell you more about what it is doing." << std::endl;
         return 0;
     }
 
@@ -66,14 +67,14 @@ int Cli::main(int argc, char **argv) {
  */
 int Cli::parse_option(std::string option) {
 
-    if (option == "-d") {
-        source_is_dir = true;
-    } else if (option == "-m") {
+    if (option == "-m") {
         mesh_only = true;
         register_only = false;
     } else if (option == "-r") {
         register_only = true;
         mesh_only = false;
+    } else if (option == "-v") {
+        verbose = true;
     }
     else {
         return 1;
@@ -88,30 +89,25 @@ int Cli::parse_option(std::string option) {
  * @param dir path to the directory.
  * @return error code 0 if everything went ok non-zero otherwise.
  */
-int Cli::read_dir(std::string dir) {
+int Cli::read_dir(fs::path path) {
 
-    Path path = Path(dir);
+    if (!fs::exists(path)) {
+        std::cout << path << " not found." << std::endl;
+        return 1;
+    }
 
     try {
-        if (boost::filesystem::exists(path)) {
-            if (boost::filesystem::is_regular_file(path)) {
-                sources.push_back(path);
-                return 0;
-            } else if (boost::filesystem::is_directory(path)) {
-
-                boost::filesystem::directory_iterator it = boost::filesystem::directory_iterator(path);
-                boost::filesystem::directory_iterator end;
-                for (it; it != end; ++it) {
-                    if (is_pcd_file(it->path().string())) {
-                        sources.push_back(it->path());
-                    } else {
-                        std::cout << it->path() << " is not a pcd file." << std::endl;
-                    }
+        if (fs::is_directory(path)) {
+            fs::directory_iterator it = fs::directory_iterator(path);
+            fs::directory_iterator end;
+            for (it; it != end; ++it) {
+                if (fs::is_regular_file(it->path())) {
+                    add_source(it->path());
                 }
-
             }
+
         }
-    } catch (const boost::filesystem::filesystem_error& ex) {
+    } catch (const fs::filesystem_error& ex) {
         std::cout << ex.what() << std::endl;
         return 1;
     }
@@ -128,7 +124,7 @@ int Cli::read_dir(std::string dir) {
 int Cli::parse_arguments(int argc, char **argv) {
 
     // Make sure there is enough arguments
-    if (argc < 4) {
+    if (argc < 3) {
         std::cout << "To few arguments" << std::endl;
         return 1;
     }
@@ -147,25 +143,25 @@ int Cli::parse_arguments(int argc, char **argv) {
         argument = std::string(argv[counter]);
     }
 
-    //Read sources
-    if (source_is_dir) {
-        read_dir(argument);
-    } else {
-        while (counter < last) {
-            // Make sure it's a .pcd file
-            if (!is_pcd_file(argument)) {
-                std::cout << "All input files must be .pcd files" << std::endl;
-                return 3;
+
+    while (counter < last) {
+
+        fs::path p = fs::path(argument);
+
+        if (fs::exists(p)) {
+
+            if (fs::is_directory(p)) {
+                read_dir(p);
+            } else if (fs::is_regular_file(p)) {
+                add_source(p);
             }
-            Path path = Path(argument);
-            if (boost::filesystem::exists(path)) {
-                sources.push_back(path);
-            } else {
-                std::cout << "File not found: " << path << std::endl;
-            }
-            counter++;
-            argument = std::string(argv[counter]);
+
+        } else {
+            std::cout << p << " not found." << std::endl;
         }
+
+        counter++;
+        argument = std::string(argv[counter]);
     }
 
     if (sources.empty()) {
@@ -175,6 +171,10 @@ int Cli::parse_arguments(int argc, char **argv) {
 
     output_filename = std::string(argv[last]);
 
+    if (verbose) {
+        print_input();
+    }
+
     return 0;
 
 }
@@ -183,8 +183,7 @@ int Cli::parse_arguments(int argc, char **argv) {
  * Prints the local variables read in from the command line used for debugging and testing.
  */
 void Cli::print_input() {
-    std::cout << "Source is directory: " << source_is_dir << std::endl;
-    std::cout << "Sources:";
+    std::cout << "Read sources:";
     for (size_t i=0; i < sources.size(); i++) {
         std::cout << " " << sources.at(i);
     }
@@ -193,12 +192,19 @@ void Cli::print_input() {
 }
 
 /**
- * Checks if a file is a pcd file by checking if the file ending is '.pcd'.
- * @param filename The file to be checked.
- * @return True if it is a pcd file false otherwise.
+ * Adds a file to sources after it has made sure the file exists and is a pcd file.
+ * @param path The file path to be added to sources.
  */
-bool Cli::is_pcd_file(std::string filename) {
-    return filename.substr(filename.find_last_of(".") + 1) == "pcd";
+void Cli::add_source(fs::path path) {
+    if (fs::exists(path)) {
+        if (fs::extension(path) == ".pcd") {
+            sources.push_back(path);
+        } else {
+            std::cout << path << " not recognized as pcd file." << std::endl;
+        }
+    } else {
+        std::cout << path << " not found." << std::endl;
+    }
 }
 
 /**
