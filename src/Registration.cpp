@@ -116,22 +116,3 @@ bool
 Registration::get_verbose_mode(){
     return this->verbose;
 }
-void
-Registration::set_euclidean_fitness(double epsilon){
-    this->euclidean_fitness = epsilon;
-}
-
-double
-Registration::get_euclidean_fitness(){
-    return this->euclidean_fitness;
-}
-
-void
-Registration::set_ransac_threshold(double threshold){
-    this->ransac_rejection_threshold = threshold;
-}
-
-double
-Registration::get_ransac_threshold(){
-    return this->ransac_rejection_threshold;
-}
