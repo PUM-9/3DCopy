@@ -46,8 +46,6 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
     icp.setMaximumIterations(this->max_iterations);
     icp.setTransformationEpsilon(this->transformation_epsilon);
     icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
-    icp.setEuclideanFitnessEpsilon(this->euclidean_fitness);
-    icp.setRANSACOutlierRejectionThreshold(this->ransac_rejection_threshold);
 
     icp.align(*target_cloud);
 
