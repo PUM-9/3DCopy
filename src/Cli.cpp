@@ -6,9 +6,11 @@
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
 #include <pcl/io/vtk_lib_io.h>
+#include <boost/program_options.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 namespace fs = boost::filesystem;
+namespace po = boost::program_options;
 
 /**
  *  Default constructor that initializes a few private values.
@@ -208,6 +210,9 @@ void Cli::add_source(fs::path path) {
  */
 PointCloud::Ptr Cli::register_point_clouds() {
     Registration registration = Registration();
+
+    registration.set_verbose_mode(verbose);
+
     std::vector<PointCloud::Ptr> point_clouds;
 
     for (auto it=sources.begin(); it!=sources.end(); ++it) {
