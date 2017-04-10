@@ -20,11 +20,11 @@ class Cli {
 
     private:
         // Fields
-        std::vector<fs::path> sources;
+        std::vector<fs::path> sources = std::vector<fs::path>();
         std::string output_filename;
-        bool mesh_only;
-        bool register_only;
-        bool verbose;
+        bool mesh_only = false;
+        bool register_only = false;
+        bool verbose = false;
 
         // Methods
         int parse_arguments(int argc, char* argv[]);

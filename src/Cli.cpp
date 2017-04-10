@@ -13,12 +13,7 @@ namespace fs = boost::filesystem;
 /**
  *  Default constructor that initializes a few private values.
  */
-Cli::Cli() {
-    mesh_only = false;
-    register_only = false;
-    verbose = false;
-    sources = std::vector<fs::path>();
-}
+Cli::Cli() {}
 
 /**
  * The main method that takes in the arguments and runs the program. Right now it only prints the inputed arguments but it's here
