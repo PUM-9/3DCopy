@@ -8,10 +8,13 @@
 /**
  *  Registers all the pointclouds in the input vector
  *  @param input_pclouds Vector of point cloud pointers,
- *  @return Returns a pointer to the fully registered point cloud
+ *  @return Returns a pointer to the fully registered point cloud, returns a nullptr if given incorrect input
  */
 Cloud::Ptr
 Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
+    if(input_pclouds.empty()) {
+        return nullptr;
+    }
     Cloud::Ptr final_cloud = input_pclouds[0];
     for(Cloud::Ptr cloud : input_pclouds){
         Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
@@ -43,7 +46,8 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
     icp.setMaximumIterations(this->max_iterations);
     icp.setTransformationEpsilon(this->transformation_epsilon);
     icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
-
+    icp.setEuclideanFitnessEpsilon(this->euclidean_fitness);
+    icp.setRANSACOutlierRejectionThreshold(this->ransac_rejection_threshold);
 
     icp.align(*target_cloud);
 
@@ -52,16 +56,7 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
                   << "The score is " << icp.getFitnessScore() << std::endl;
         std::cout << "Transformation matrix:" << std::endl;
         std::cout << icp.getFinalTransformation() << std::endl;
-        Eigen::Matrix4f transformationMatrix = icp.getFinalTransformation();
-        std::cout << "trans \n" << transformationMatrix << std::endl;
-
-        pcl::transformPointCloud(*target_cloud, *target_cloud_new, transformationMatrix);
-
-        *final_cloud = *source_cloud + *target_cloud;
-
-        pcl::io::savePCDFileASCII("ICP_result.pcd", *final_cloud);
         icp_converged = true;
-        return final_cloud;
     } else {
         std::cout << "ICP did not converge./FAILED" << std::endl;
         icp_converged = false;
@@ -122,4 +117,23 @@ Registration::set_verbose_mode(bool mode){
 bool
 Registration::get_verbose_mode(){
     return this->verbose;
+}
+void
+Registration::set_euclidean_fitness(double epsilon){
+    this->euclidean_fitness = epsilon;
+}
+
+double
+Registration::get_euclidean_fitness(){
+    return this->euclidean_fitness;
+}
+
+void
+Registration::set_ransac_threshold(double threshold){
+    this->ransac_rejection_threshold = threshold;
+}
+
+double
+Registration::get_ransac_threshold(){
+    return this->ransac_rejection_threshold;
 }

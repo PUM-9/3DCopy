@@ -14,9 +14,11 @@ public:
 private:
     //Data fields
     bool icp_converged;
-    double max_correspondence_distance = 0.5;
+    double max_correspondence_distance = 15;
     int max_iterations = 100;
-    double transformation_epsilon = 1e-7;
+    double transformation_epsilon = 1e-3;
+    double euclidean_fitness = 1;
+    double ransac_rejection_threshold = 1;
     bool verbose = false;
 
 
@@ -31,6 +33,10 @@ private:
     double get_transformation_epsilon();
     void set_verbose_mode(bool mode);
     bool get_verbose_mode();
+    void set_ransac_threshold(double threshold);
+    double get_ransac_threshold();
+    void set_euclidean_fitness(double epsilon);
+    double get_euclidean_fitness();
 };
 
 
