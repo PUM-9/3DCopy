@@ -18,10 +18,6 @@ public:
     double get_transformation_epsilon();
     void set_verbose_mode(bool mode);
     bool get_verbose_mode();
-    void set_ransac_threshold(double threshold);
-    double get_ransac_threshold();
-    void set_euclidean_fitness(double epsilon);
-    double get_euclidean_fitness();
 
 private:
     //Data fields
@@ -30,8 +26,6 @@ private:
                                                 // point a in cloud y
     int max_iterations = 100;                   //Force the ICP Algorithm to stop after max_iterations;
     double transformation_epsilon = 1e-7;       //How much ICP is allowed to move source in one iteration;
-    double euclidean_fitness = 1;               //Currently unused
-    double ransac_rejection_threshold = 1;      //Currently unused
     bool verbose = false;
 
 
