@@ -6,6 +6,7 @@
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
 #include <pcl/io/vtk_lib_io.h>
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -28,15 +29,11 @@ int Cli::main(int argc, char **argv) {
 
     Mesh mesh = Mesh();
 
-    if (parse_arguments(argc, argv)) {
-        std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
-        std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
-                "files." << std::endl;
-        std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
-        std::cout << "-r        just registers the given point clouds, skips meshing." << std::endl;
-        std::cout << "-v        Verbose, makes the program tell you more about what it is doing." << std::endl;
-        return 0;
-    }
+    parse_arguments(argc, argv);
+
+    print_input();
+
+    return 0;
 
     if (mesh_only && !sources.empty()) {
         PointCloud::Ptr point_cloud_ptr (new PointCloud);
@@ -120,56 +117,68 @@ int Cli::read_dir(fs::path path) {
  */
 int Cli::parse_arguments(int argc, char **argv) {
 
-    // Make sure there is enough arguments
-    if (argc < 3) {
-        std::cout << "To few arguments" << std::endl;
+    po::options_description options("Allowed options");
+    options.add_options()
+            ("help, h", "produce help message.")
+            ("verbose,v", "run the program in verbose mode.")
+            ("mesh-only,m", "only mesh the pcd file.")
+            ("register-only,r", "only register the pcd files.");
+
+    po::options_description filenames("Input and output files");
+    filenames.add_options()
+            ("sources", po::value<std::vector<std::string> >(), "input pcd files.")
+            ("target", po::value<std::string>(), "output files filename without extension.");
+
+    po::options_description all("All options");
+    all.add(options).add(filenames);
+
+    po::positional_options_description positional;
+    positional.add("sources", -2);
+    positional.add("target", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, (const char *const *)argv).options(all).positional(positional).allow_unregistered().run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help") || !vm.count("sources") || !vm.count("target")) {
+        std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
+        std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
+                "files." << std::endl;
+        std::cout << options << std::endl;
+    }
+
+    if (vm.count("verbose")) {
+        verbose = true;
+    }
+
+    if (vm.count("mesh-only")) {
+        mesh_only = true;
+    }
+
+    if (vm.count("register-only")) {
+        register_only = true;
+    }
+
+    auto input_files = vm["sources"].as<std::vector<std::string> >();
+    for (auto it = input_files.begin(); it != input_files.end(); ++it) {
+        fs::path p = fs::path(*it);
+        if (fs::is_directory(p)) {
+            read_dir(p);
+        } else if (fs::is_regular_file(p)) {
+            add_source(p);
+        }
+    }
+
+    if (vm.count("target")) {
+        output_filename = vm["target"].as<std::string>();
+    } else {
+        std::cout << "No output filename given, see -h for help." << std::endl;
         return 1;
     }
 
-    int counter = 1;
-    int last = argc-1;
-    std::string argument = std::string(argv[counter]);
-
-    // Read options
-    while (!argument.empty() && argument.at(0) == '-') {
-        if (parse_option(argument)) {
-            std::cout << "Unrecognized option: " << argument << std::endl;
-            return 2;
-        }
-        counter++;
-        argument = std::string(argv[counter]);
-    }
-
-
-    while (counter < last) {
-
-        fs::path p = fs::path(argument);
-
-        if (fs::exists(p)) {
-
-            if (fs::is_directory(p)) {
-                read_dir(p);
-            } else if (fs::is_regular_file(p)) {
-                add_source(p);
-            }
-
-        } else {
-            std::cout << p << " not found." << std::endl;
-        }
-
-        counter++;
-        argument = std::string(argv[counter]);
-    }
-
     if (sources.empty()) {
-        std::cout << "No sources found" << std::endl;
-        return 4;
-    }
-
-    output_filename = std::string(argv[last]);
-
-    if (verbose) {
-        print_input();
+        std::cout << "No sources fund" << std::endl;
+        return 2;
     }
 
     return 0;
