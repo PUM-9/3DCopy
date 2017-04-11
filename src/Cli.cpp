@@ -25,9 +25,9 @@ Cli::Cli() {}
  */
 int Cli::main(int argc, char **argv) {
 
-    Mesh mesh = Mesh();
-
     parse_arguments(argc, argv);
+
+    Mesh mesh = Mesh();
 
     if (mesh_only && !sources.empty()) {
         PointCloud::Ptr point_cloud_ptr (new PointCloud);
