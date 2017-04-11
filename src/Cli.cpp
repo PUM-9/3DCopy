@@ -262,6 +262,11 @@ void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
     std::cout << "Saved mesh to " << ss.str() << std::endl;
 }
 
+/**
+ * Prints the help message.
+ * @param options The options to be printed in the message.
+ * @param argv List of arguments passed from the CLI used to get the command used.
+ */
 void Cli::print_help(po::options_description options, char **argv) {
     std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
     std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
