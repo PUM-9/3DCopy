@@ -25,7 +25,12 @@ Cli::Cli() {}
  */
 int Cli::main(int argc, char **argv) {
 
-    parse_arguments(argc, argv);
+    int exit_code = parse_arguments(argc, argv);
+
+    if (exit_code) {
+        std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
+        return 1;
+    }
 
     Mesh mesh = Mesh();
 
@@ -92,7 +97,9 @@ int Cli::parse_arguments(int argc, char **argv) {
             ("help,h", "produce help message.")
             ("verbose,v", "run the program in verbose mode.")
             ("mesh-only,m", "only mesh the pcd file.")
-            ("register-only,r", "only register the pcd files.");
+            ("register-only,r", "only register the pcd files.")
+            ("max-corr-dist,d", po::value<double>(), "Maximum distance allowed between points in different clouds.")
+            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do.");
 
     po::options_description filenames("Input and output files");
     filenames.add_options()
@@ -106,14 +113,20 @@ int Cli::parse_arguments(int argc, char **argv) {
     positional.add("filenames", -1);
 
     po::variables_map vm;
-    auto parser = po::command_line_parser(argc, (const char *const *)argv).options(all).positional(positional)
-            .allow_unregistered().run();
-    po::store(parser, vm);
-    po::notify(vm);
+    try {
+        auto parser = po::command_line_parser(argc, (const char *const *) argv).options(all).positional(positional)
+                .allow_unregistered().run();
+        po::store(parser, vm);
+        po::notify(vm);
+    } catch (const po::error& e) {
+        std::cerr << e.what() << std::endl;
+        print_help(options, argv);
+        return 1;
+    }
 
     if (vm.count("help") || !vm.count("filenames")) {
         print_help(options, argv);
-        return 1;
+        return 2;
     }
 
     load_values(vm);
@@ -121,10 +134,56 @@ int Cli::parse_arguments(int argc, char **argv) {
     if (sources.empty()) {
         std::cout << "No sources fund" << std::endl;
         print_help(options, argv);
-        return 2;
+        return 3;
     }
 
     return 0;
+
+}
+
+/**
+ * Loads values from the command line in to local fields that can be used later in the program.
+ * @param vm variabel map with the values from the command line.
+ */
+void Cli::load_values(po::variables_map vm) {
+
+    if (vm.count("verbose")) {
+        verbose = true;
+    }
+
+    if (vm.count("mesh-only")) {
+        mesh_only = true;
+    }
+
+    if (vm.count("register-only")) {
+        register_only = true;
+    }
+
+    if (register_only && mesh_only) {
+        register_only = mesh_only = false;
+    }
+
+    if (vm.count("max-corr-dist")) {
+        max_correspondence_distance = vm["max-corr-dist"].as<double>();
+    }
+
+    if (vm.count("max-iterations")) {
+        max_iterations = vm["max-iterations"].as<int>();
+    }
+
+    if (vm.count("filenames")) {
+        auto input_files = vm["filenames"].as<std::vector<std::string> >();
+        size_t last = input_files.size() - 1;
+        output_filename = input_files[last];
+        for (size_t i=0; i < last; ++i) {
+            fs::path p = fs::path(input_files[i]);
+            if (fs::is_directory(p)) {
+                read_dir(p);
+            } else if (fs::is_regular_file(p)) {
+                add_source(p);
+            }
+        }
+    }
 
 }
 
@@ -167,6 +226,8 @@ PointCloud::Ptr Cli::register_point_clouds() {
     Registration registration = Registration();
 
     registration.set_verbose_mode(verbose);
+    registration.set_max_correspondence_distance(max_correspondence_distance);
+    registration.set_max_iterations(max_iterations);
 
     std::vector<PointCloud::Ptr> point_clouds;
 
@@ -208,40 +269,3 @@ void Cli::print_help(po::options_description options, char **argv) {
     std::cout << options << std::endl;
 }
 
-/**
- * Loads values from the command line in to local fields that can be used later in the program.
- * @param vm variabel map with the values from the command line.
- */
-void Cli::load_values(po::variables_map vm) {
-
-    if (vm.count("verbose")) {
-        verbose = true;
-    }
-
-    if (vm.count("mesh-only")) {
-        mesh_only = true;
-    }
-
-    if (vm.count("register-only")) {
-        register_only = true;
-    }
-
-    if (register_only && mesh_only) {
-        register_only = mesh_only = false;
-    }
-
-    if (vm.count("filenames")) {
-        auto input_files = vm["filenames"].as<std::vector<std::string> >();
-        size_t last = input_files.size() - 1;
-        output_filename = input_files[last];
-        for (size_t i=0; i < last; ++i) {
-            fs::path p = fs::path(input_files[i]);
-            if (fs::is_directory(p)) {
-                read_dir(p);
-            } else if (fs::is_regular_file(p)) {
-                add_source(p);
-            }
-        }
-    }
-
-}

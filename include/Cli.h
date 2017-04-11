@@ -27,6 +27,10 @@ class Cli {
         bool mesh_only = false;
         bool register_only = false;
         bool verbose = false;
+        double max_correspondence_distance = 15;    //Maximum distance allowed between point a in cloud x and
+                                                    // point a in cloud y
+        int max_iterations = 100;                   //Force the ICP Algorithm to stop after max_iterations
+        double transformation_epsilon = 1e-7;       //How much ICP is allowed to move source in one iteration
 
         // Methods
         void print_help(po::options_description options, char **argv);
