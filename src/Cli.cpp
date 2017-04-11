@@ -6,7 +6,6 @@
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
 #include <pcl/io/vtk_lib_io.h>
-#include <boost/program_options.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 namespace fs = boost::filesystem;
@@ -30,10 +29,6 @@ int Cli::main(int argc, char **argv) {
 
     parse_arguments(argc, argv);
 
-    print_input();
-
-    return 0;
-
     if (mesh_only && !sources.empty()) {
         PointCloud::Ptr point_cloud_ptr (new PointCloud);
         pcl::io::loadPCDFile(sources.at(0).string(), *point_cloud_ptr);
@@ -51,30 +46,6 @@ int Cli::main(int argc, char **argv) {
     }
 
     return 0;
-}
-
-/**
- * Parses option and sets internal fields accordingly.
- * @param option The option to parse
- * @return error code 0 if everything went ok otherwise non-zero.
- */
-int Cli::parse_option(std::string option) {
-
-    if (option == "-m") {
-        mesh_only = true;
-        register_only = false;
-    } else if (option == "-r") {
-        register_only = true;
-        mesh_only = false;
-    } else if (option == "-v") {
-        verbose = true;
-    }
-    else {
-        return 1;
-    }
-
-    return 0;
-
 }
 
 /**
@@ -125,15 +96,14 @@ int Cli::parse_arguments(int argc, char **argv) {
 
     po::options_description filenames("Input and output files");
     filenames.add_options()
-            ("sources", po::value<std::vector<std::string> >(), "input pcd files.")
-            ("target", po::value<std::string>(), "output files filename without extension.");
+            ("filenames", po::value<std::vector<std::string> >(),
+             "filenames of input files, directories and output filename");
 
     po::options_description all("All options");
     all.add(options).add(filenames);
 
     po::positional_options_description positional;
-    positional.add("sources", -1);
-    positional.add("target", 1);
+    positional.add("filenames", -1);
 
     po::variables_map vm;
     auto parser = po::command_line_parser(argc, (const char *const *)argv).options(all).positional(positional)
@@ -141,48 +111,17 @@ int Cli::parse_arguments(int argc, char **argv) {
     po::store(parser, vm);
     po::notify(vm);
 
-    if (vm.count("help") || !vm.count("sources") || !vm.count("target")) {
-        std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
-        std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
-                "files." << std::endl;
-        std::cout << options << std::endl;
+    if (vm.count("help") || !vm.count("filenames")) {
+        print_help(options, argv);
         return 1;
     }
 
-    if (vm.count("verbose")) {
-        verbose = true;
-    }
-
-    if (vm.count("mesh-only")) {
-        mesh_only = true;
-    }
-
-    if (vm.count("register-only")) {
-        register_only = true;
-    }
-
-    if (vm.count("sources")) {
-        auto input_files = vm["sources"].as<std::vector<std::string> >();
-        for (auto it = input_files.begin(); it != input_files.end(); ++it) {
-            fs::path p = fs::path(*it);
-            if (fs::is_directory(p)) {
-                read_dir(p);
-            } else if (fs::is_regular_file(p)) {
-                add_source(p);
-            }
-        }
-    }
-
-    if (vm.count("target")) {
-        output_filename = vm["target"].as<std::string>();
-    } else {
-        std::cout << "No output filename given, see -h for help." << std::endl;
-        return 2;
-    }
+    load_values(vm);
 
     if (sources.empty()) {
         std::cout << "No sources fund" << std::endl;
-        return 3;
+        print_help(options, argv);
+        return 2;
     }
 
     return 0;
@@ -199,6 +138,9 @@ void Cli::print_input() {
     }
     std::cout << std::endl;
     std::cout << "Output filename: " << output_filename << std::endl;
+    std::cout << "mesh_only: " << mesh_only << std::endl;
+    std::cout << "verbose: " << verbose << std::endl;
+    std::cout << "register_only: " << register_only << std::endl;
 }
 
 /**
@@ -257,4 +199,49 @@ void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
     ss << output_filename << ".stl";
     pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
     std::cout << "Saved mesh to " << ss.str() << std::endl;
+}
+
+void Cli::print_help(po::options_description options, char **argv) {
+    std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
+    std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
+            "files." << std::endl;
+    std::cout << options << std::endl;
+}
+
+/**
+ * Loads values from the command line in to local fields that can be used later in the program.
+ * @param vm variabel map with the values from the command line.
+ */
+void Cli::load_values(po::variables_map vm) {
+
+    if (vm.count("verbose")) {
+        verbose = true;
+    }
+
+    if (vm.count("mesh-only")) {
+        mesh_only = true;
+    }
+
+    if (vm.count("register-only")) {
+        register_only = true;
+    }
+
+    if (register_only && mesh_only) {
+        register_only = mesh_only = false;
+    }
+
+    if (vm.count("filenames")) {
+        auto input_files = vm["filenames"].as<std::vector<std::string> >();
+        size_t last = input_files.size() - 1;
+        output_filename = input_files[last];
+        for (size_t i=0; i < last; ++i) {
+            fs::path p = fs::path(input_files[i]);
+            if (fs::is_directory(p)) {
+                read_dir(p);
+            } else if (fs::is_regular_file(p)) {
+                add_source(p);
+            }
+        }
+    }
+
 }

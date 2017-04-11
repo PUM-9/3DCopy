@@ -6,11 +6,13 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <pcl/io/pcd_io.h>
+#include <boost/program_options.hpp>
 
 #ifndef INC_3DCOPY_CLI_H
 #define INC_3DCOPY_CLI_H
 
 namespace fs = boost::filesystem;
+namespace po = boost::program_options;
 
 class Cli {
     public:
@@ -27,14 +29,15 @@ class Cli {
         bool verbose = false;
 
         // Methods
+        void print_help(po::options_description options, char **argv);
         int parse_arguments(int argc, char* argv[]);
-        int parse_option(std::string option);
         int read_dir(fs::path path);
         void print_input();
         void add_source(fs::path path);
         pcl::PointCloud<pcl::PointXYZ>::Ptr register_point_clouds();
         void save_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud);
         void save_mesh(const pcl::PolygonMesh polygon_mesh);
+        void load_values(po::variables_map vm);
 };
 
 
