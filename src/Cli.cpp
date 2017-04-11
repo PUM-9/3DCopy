@@ -98,8 +98,8 @@ int Cli::parse_arguments(int argc, char **argv) {
             ("verbose,v", "run the program in verbose mode.")
             ("mesh-only,m", "only mesh the pcd file.")
             ("register-only,r", "only register the pcd files.")
-            ("max-corr-dist,d", po::value<double>(), "Maximum distance allowed between points in different clouds.")
-            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do.");
+            ("max-corr-dist,d", po::value<double>(), "Maximum distance allowed between points in different clouds. (>0)")
+            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do. (>0)");
 
     po::options_description filenames("Input and output files");
     filenames.add_options()
@@ -163,11 +163,11 @@ void Cli::load_values(po::variables_map vm) {
         register_only = mesh_only = false;
     }
 
-    if (vm.count("max-corr-dist")) {
+    if (vm.count("max-corr-dist") && vm["max-corr-dist"].as<double>() > 0) {
         max_correspondence_distance = vm["max-corr-dist"].as<double>();
     }
 
-    if (vm.count("max-iterations")) {
+    if (vm.count("max-iterations") && vm["max-iterations"].as<int>() > 0) {
         max_iterations = vm["max-iterations"].as<int>();
     }
 

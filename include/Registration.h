@@ -10,12 +10,12 @@ class Registration {
 public:
     //Methods
     Cloud::Ptr register_point_clouds(std::vector<Cloud::Ptr> input_pclouds);
-    void set_max_iterations(int iter);
-    int get_max_iterations();
+    void set_max_iterations(unsigned int iter);
+    unsigned int get_max_iterations();
     void set_max_correspondence_distance(double distance);
-    double get_max_correspondence_distance();
+    unsigned double get_max_correspondence_distance();
     void set_transformation_epsilon(double epsilon);
-    double get_transformation_epsilon();
+    unsigned double get_transformation_epsilon();
     void set_verbose_mode(bool mode);
     bool get_verbose_mode();
 
@@ -24,7 +24,7 @@ private:
     bool icp_converged;
     double max_correspondence_distance = 15;    //Maximum distance allowed between point a in cloud x and
                                                 // point a in cloud y
-    int max_iterations = 100;                   //Force the ICP Algorithm to stop after max_iterations
+    unsigned int max_iterations = 100;                   //Force the ICP Algorithm to stop after max_iterations
     double transformation_epsilon = 1e-7;       //How much ICP is allowed to move source in one iteration
     bool verbose = false;
 
