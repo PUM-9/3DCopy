@@ -13,9 +13,9 @@ public:
     void set_max_iterations(unsigned int iter);
     unsigned int get_max_iterations();
     void set_max_correspondence_distance(double distance);
-    unsigned double get_max_correspondence_distance();
+    double get_max_correspondence_distance();
     void set_transformation_epsilon(double epsilon);
-    unsigned double get_transformation_epsilon();
+    double get_transformation_epsilon();
     void set_verbose_mode(bool mode);
     bool get_verbose_mode();
 
