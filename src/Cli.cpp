@@ -132,7 +132,7 @@ int Cli::parse_arguments(int argc, char **argv) {
     load_values(vm);
 
     if (sources.empty()) {
-        std::cout << "No sources fund" << std::endl;
+        std::cout << "No sources found" << std::endl;
         print_help(options, argv);
         return 3;
     }
