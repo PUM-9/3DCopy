@@ -9,16 +9,12 @@
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 namespace fs = boost::filesystem;
+namespace po = boost::program_options;
 
 /**
  *  Default constructor that initializes a few private values.
  */
-Cli::Cli() {
-    mesh_only = false;
-    register_only = false;
-    verbose = false;
-    sources = std::vector<fs::path>();
-}
+Cli::Cli() {}
 
 /**
  * The main method that takes in the arguments and runs the program. Right now it only prints the inputed arguments but it's here
@@ -29,17 +25,14 @@ Cli::Cli() {
  */
 int Cli::main(int argc, char **argv) {
 
-    Mesh mesh = Mesh();
+    int exit_code = parse_arguments(argc, argv);
 
-    if (parse_arguments(argc, argv)) {
-        std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
-        std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
-                "files." << std::endl;
-        std::cout << "-m        just mesh the point cloud (only meshes the first point cloud)." << std::endl;
-        std::cout << "-r        just registers the given point clouds, skips meshing." << std::endl;
-        std::cout << "-v        Verbose, makes the program tell you more about what it is doing." << std::endl;
-        return 0;
+    if (exit_code) {
+        std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
+        return 1;
     }
+
+    Mesh mesh = Mesh();
 
     if (mesh_only && !sources.empty()) {
         PointCloud::Ptr point_cloud_ptr (new PointCloud);
@@ -58,30 +51,6 @@ int Cli::main(int argc, char **argv) {
     }
 
     return 0;
-}
-
-/**
- * Parses option and sets internal fields accordingly.
- * @param option The option to parse
- * @return error code 0 if everything went ok otherwise non-zero.
- */
-int Cli::parse_option(std::string option) {
-
-    if (option == "-m") {
-        mesh_only = true;
-        register_only = false;
-    } else if (option == "-r") {
-        register_only = true;
-        mesh_only = false;
-    } else if (option == "-v") {
-        verbose = true;
-    }
-    else {
-        return 1;
-    }
-
-    return 0;
-
 }
 
 /**
@@ -123,59 +92,98 @@ int Cli::read_dir(fs::path path) {
  */
 int Cli::parse_arguments(int argc, char **argv) {
 
-    // Make sure there is enough arguments
-    if (argc < 3) {
-        std::cout << "To few arguments" << std::endl;
+    po::options_description options("Allowed options");
+    options.add_options()
+            ("help,h", "produce help message.")
+            ("verbose,v", "run the program in verbose mode.")
+            ("mesh-only,m", "only mesh the pcd file.")
+            ("register-only,r", "only register the pcd files.")
+            ("max-corr-dist,d", po::value<double>(), "Maximum distance allowed between points in different clouds. (>0)")
+            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do. (>0)");
+
+    po::options_description filenames("Input and output files");
+    filenames.add_options()
+            ("filenames", po::value<std::vector<std::string> >(),
+             "filenames of input files, directories and output filename");
+
+    po::options_description all("All options");
+    all.add(options).add(filenames);
+
+    po::positional_options_description positional;
+    positional.add("filenames", -1);
+
+    po::variables_map vm;
+    try {
+        auto parser = po::command_line_parser(argc, (const char *const *) argv).options(all).positional(positional)
+                .allow_unregistered().run();
+        po::store(parser, vm);
+        po::notify(vm);
+    } catch (const po::error& e) {
+        std::cerr << e.what() << std::endl;
+        print_help(options, argv);
         return 1;
     }
 
-    int counter = 1;
-    int last = argc-1;
-    std::string argument = std::string(argv[counter]);
-
-    // Read options
-    while (!argument.empty() && argument.at(0) == '-') {
-        if (parse_option(argument)) {
-            std::cout << "Unrecognized option: " << argument << std::endl;
-            return 2;
-        }
-        counter++;
-        argument = std::string(argv[counter]);
+    if (vm.count("help") || !vm.count("filenames")) {
+        print_help(options, argv);
+        return 2;
     }
 
+    load_values(vm);
 
-    while (counter < last) {
+    if (sources.empty()) {
+        std::cout << "No sources found" << std::endl;
+        print_help(options, argv);
+        return 3;
+    }
 
-        fs::path p = fs::path(argument);
+    return 0;
 
-        if (fs::exists(p)) {
+}
 
+/**
+ * Loads values from the command line in to local fields that can be used later in the program.
+ * @param vm variabel map with the values from the command line.
+ */
+void Cli::load_values(po::variables_map vm) {
+
+    if (vm.count("verbose")) {
+        verbose = true;
+    }
+
+    if (vm.count("mesh-only")) {
+        mesh_only = true;
+    }
+
+    if (vm.count("register-only")) {
+        register_only = true;
+    }
+
+    if (register_only && mesh_only) {
+        register_only = mesh_only = false;
+    }
+
+    if (vm.count("max-corr-dist") && vm["max-corr-dist"].as<double>() > 0) {
+        max_correspondence_distance = vm["max-corr-dist"].as<double>();
+    }
+
+    if (vm.count("max-iterations") && vm["max-iterations"].as<int>() > 0) {
+        max_iterations = (unsigned int)vm["max-iterations"].as<int>();
+    }
+
+    if (vm.count("filenames")) {
+        auto input_files = vm["filenames"].as<std::vector<std::string> >();
+        size_t last = input_files.size() - 1;
+        output_filename = input_files[last];
+        for (size_t i=0; i < last; ++i) {
+            fs::path p = fs::path(input_files[i]);
             if (fs::is_directory(p)) {
                 read_dir(p);
             } else if (fs::is_regular_file(p)) {
                 add_source(p);
             }
-
-        } else {
-            std::cout << p << " not found." << std::endl;
         }
-
-        counter++;
-        argument = std::string(argv[counter]);
     }
-
-    if (sources.empty()) {
-        std::cout << "No sources found" << std::endl;
-        return 4;
-    }
-
-    output_filename = std::string(argv[last]);
-
-    if (verbose) {
-        print_input();
-    }
-
-    return 0;
 
 }
 
@@ -189,6 +197,9 @@ void Cli::print_input() {
     }
     std::cout << std::endl;
     std::cout << "Output filename: " << output_filename << std::endl;
+    std::cout << "mesh_only: " << mesh_only << std::endl;
+    std::cout << "verbose: " << verbose << std::endl;
+    std::cout << "register_only: " << register_only << std::endl;
 }
 
 /**
@@ -213,6 +224,12 @@ void Cli::add_source(fs::path path) {
  */
 PointCloud::Ptr Cli::register_point_clouds() {
     Registration registration = Registration();
+
+    registration.set_verbose_mode(verbose);
+    registration.set_max_correspondence_distance(max_correspondence_distance);
+    registration.set_max_iterations(max_iterations);
+    registration.set_transformation_epsilon(transformation_epsilon);
+
     std::vector<PointCloud::Ptr> point_clouds;
 
     for (auto it=sources.begin(); it!=sources.end(); ++it) {
@@ -245,3 +262,16 @@ void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
     pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
     std::cout << "Saved mesh to " << ss.str() << std::endl;
 }
+
+/**
+ * Prints the help message.
+ * @param options The options to be printed in the message.
+ * @param argv List of arguments passed from the CLI used to get the command used.
+ */
+void Cli::print_help(po::options_description options, char **argv) {
+    std::cout << "Usage: " << argv[0] << " [options] source1:source2... output_filename" << std::endl;
+    std::cout << "source are the .pcd files to be registered and output_filename is the filename of the output "
+            "files." << std::endl;
+    std::cout << options << std::endl;
+}
+
