@@ -168,7 +168,7 @@ void Cli::load_values(po::variables_map vm) {
     }
 
     if (vm.count("max-iterations") && vm["max-iterations"].as<int>() > 0) {
-        max_iterations = vm["max-iterations"].as<int>();
+        max_iterations = (unsigned int)vm["max-iterations"].as<int>();
     }
 
     if (vm.count("filenames")) {
@@ -228,6 +228,7 @@ PointCloud::Ptr Cli::register_point_clouds() {
     registration.set_verbose_mode(verbose);
     registration.set_max_correspondence_distance(max_correspondence_distance);
     registration.set_max_iterations(max_iterations);
+    registration.set_transformation_epsilon(transformation_epsilon);
 
     std::vector<PointCloud::Ptr> point_clouds;
 

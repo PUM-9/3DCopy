@@ -43,9 +43,6 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
     // Parameters for the ICP algorithm
     icp.setInputTarget(source_cloud);
     icp.setInputSource(target_cloud);
-    std::cout << "verbose: " << verbose << std::endl;
-    std::cout << "max iterations: " << max_iterations << std::endl;
-    std::cout << "max corr dist: " << max_correspondence_distance << std::endl;
     icp.setMaximumIterations(this->max_iterations);
     icp.setTransformationEpsilon(this->transformation_epsilon);
     icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
