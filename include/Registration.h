@@ -11,8 +11,8 @@ class Registration {
 public:
     //Methods
     Cloud::Ptr register_point_clouds(std::vector<Cloud::Ptr> input_pclouds);
-    void set_max_iterations(int iter);
-    int get_max_iterations();
+    void set_max_iterations(unsigned int iter);
+    unsigned int get_max_iterations();
     void set_max_correspondence_distance(double distance);
     double get_max_correspondence_distance();
     void set_transformation_epsilon(double epsilon);

@@ -92,20 +92,24 @@ Registration::has_converged(){
 
 void
 Registration::set_max_correspondence_distance(double distance){
-    this->max_correspondence_distance = distance;
+    if (distance > 0) {
+        this->max_correspondence_distance = distance;
+    }
 }
 
 void
-Registration::set_max_iterations(int iter){
+Registration::set_max_iterations(unsigned int iter){
     this->max_iterations = iter;
 }
 
 void
 Registration::set_transformation_epsilon(double epsilon){
-    this->transformation_epsilon = epsilon;
+    if (epsilon > 0) {
+        this->transformation_epsilon = epsilon;
+    }
 }
 
-int
+unsigned int
 Registration::get_max_iterations(){
     return this->max_iterations;
 }
