@@ -6,13 +6,23 @@
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
 #include <pcl/io/vtk_lib_io.h>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+namespace logging = boost::log;
+namespace keywords = boost::log::keywords;
 
 /**
- *  Default constructor that initializes a few private values.
+ *  Default constructor.
  */
 Cli::Cli() {}
 
@@ -26,6 +36,7 @@ Cli::Cli() {}
 int Cli::main(int argc, char **argv) {
 
     int exit_code = parse_arguments(argc, argv);
+    init_logging();
 
     if (exit_code) {
         std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
@@ -275,3 +286,14 @@ void Cli::print_help(po::options_description options, char **argv) {
     std::cout << options << std::endl;
 }
 
+
+void Cli::init_logging() {
+    fs::path log_path = "";
+    logging::add_file_log(
+            keywords::file_name = "3DCopy_%N.log",
+            keywords::rotation_size = 10 * 1024 * 1024,
+            keywords::format = "[%TimeStamp%]: %Message%"
+    );
+    logging::core::get()->set_filter(logging::trivial::severity >= log_lvl);
+    BOOST_LOG_TRIVIAL(info) << "Logging initialized";
+}

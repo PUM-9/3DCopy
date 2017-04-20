@@ -7,12 +7,14 @@
 #include <boost/filesystem.hpp>
 #include <pcl/io/pcd_io.h>
 #include <boost/program_options.hpp>
+#include <boost/log/trivial.hpp>
 
 #ifndef INC_3DCOPY_CLI_H
 #define INC_3DCOPY_CLI_H
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+namespace logging = boost::log;
 
 class Cli {
     public:
@@ -31,6 +33,7 @@ class Cli {
                                                     // point a in cloud y
         unsigned int max_iterations = 100;          //Force the ICP Algorithm to stop after max_iterations
         double transformation_epsilon = 1e-7;       //How much ICP is allowed to move source in one iteration
+        logging::trivial::severity_level log_lvl = logging::trivial::info;
 
         // Methods
         void print_help(po::options_description options, char **argv);
@@ -42,6 +45,7 @@ class Cli {
         void save_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud);
         void save_mesh(const pcl::PolygonMesh polygon_mesh);
         void load_values(po::variables_map vm);
+        void init_logging();
 };
 
 
