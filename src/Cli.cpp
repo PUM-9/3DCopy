@@ -32,16 +32,15 @@ Cli::Cli() {}
 int Cli::main(int argc, char **argv) {
 
     int exit_code = parse_arguments(argc, argv);
+    init_logging();
 
     if (exit_code) {
         if (exit_code == 2) {// Displayed help
             return 0;
         }
-        std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Failed to parse arguments, exit code: " << exit_code;
         return 1;
     }
-
-    init_logging();
 
     Mesh mesh = Mesh();
 
@@ -72,7 +71,8 @@ int Cli::main(int argc, char **argv) {
 int Cli::read_dir(fs::path path) {
 
     if (!fs::exists(path)) {
-        std::cout << path << " not found." << std::endl;
+        if (verbose) {std::cout << path << " not found." << std::endl;}
+        BOOST_LOG_TRIVIAL(warning) << path << " not found.";
         return 1;
     }
 
@@ -88,7 +88,8 @@ int Cli::read_dir(fs::path path) {
 
         }
     } catch (const fs::filesystem_error& ex) {
-        std::cout << ex.what() << std::endl;
+        if (verbose) {std::cout << ex.what() << std::endl;}
+        BOOST_LOG_TRIVIAL(error) << ex.what();
         return 1;
     }
 
@@ -146,6 +147,7 @@ int Cli::parse_arguments(int argc, char **argv) {
 
     if (sources.empty()) {
         std::cout << "No sources found" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "No sources found";
         print_help(options, argv);
         return 3;
     }
@@ -241,10 +243,12 @@ void Cli::add_source(fs::path path) {
         if (fs::extension(path) == ".pcd") {
             sources.push_back(path);
         } else {
-            std::cout << path << " not recognized as pcd file." << std::endl;
+            if (verbose) {std::cout << path << " not recognized as pcd file." << std::endl;}
+            BOOST_LOG_TRIVIAL(warning) << path << " not recognized as pcd file.";
         }
     } else {
-        std::cout << path << " not found." << std::endl;
+        if (verbose) {std::cout << path << " not found." << std::endl;}
+        BOOST_LOG_TRIVIAL(warning) << path << " not found.";
     }
 }
 
@@ -267,7 +271,8 @@ PointCloud::Ptr Cli::register_point_clouds() {
         pcl::io::loadPCDFile((*it).string(), *point_cloud_ptr);
         point_clouds.push_back(point_cloud_ptr);
     }
-    std::cout << "Read point clouds" << std::endl;
+    if (verbose) {std::cout << "Read point clouds" << std::endl;}
+    BOOST_LOG_TRIVIAL(info) << "Read point clouds";
     return registration.register_point_clouds(point_clouds);
 }
 
