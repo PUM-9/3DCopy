@@ -263,7 +263,8 @@ void Cli::save_point_cloud(const PointCloud::Ptr point_cloud) {
     std::stringstream ss;
     ss << output_filename << ".pcd";
     pcl::io::savePCDFile(ss.str(), *point_cloud);
-    std::cout << "Saved point cloud to " << ss.str() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Saved point cloud to " << ss.str();
+    if (verbose) {std::cout << "Saved point cloud to " << ss.str() << std::endl;}
 }
 
 /**
@@ -274,7 +275,8 @@ void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
     std::stringstream ss;
     ss << output_filename << ".stl";
     pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
-    std::cout << "Saved mesh to " << ss.str() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Saved mesh to " << ss.str();
+    if (verbose){std::cout << "Saved mesh to " << ss.str() << std::endl;}
 }
 
 /**
@@ -296,6 +298,7 @@ void Cli::init_logging() {
     logging::add_file_log(
             keywords::file_name = "3DCopy_%N.log",
             keywords::rotation_size = 10 * 1024 * 1024,
+            keywords::auto_flush = true,
             keywords::format = "[%TimeStamp%]: %Message%"
     );
     logging::core::get()->set_filter(logging::trivial::severity >= log_lvl);
