@@ -39,6 +39,9 @@ int Cli::main(int argc, char **argv) {
     init_logging();
 
     if (exit_code) {
+        if (exit_code == 2) {// Displayed help
+            return 0;
+        }
         std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
         return 1;
     }
@@ -289,6 +292,7 @@ void Cli::print_help(po::options_description options, char **argv) {
 
 void Cli::init_logging() {
     fs::path log_path = "";
+    logging::add_common_attributes();
     logging::add_file_log(
             keywords::file_name = "3DCopy_%N.log",
             keywords::rotation_size = 10 * 1024 * 1024,
