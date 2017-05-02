@@ -6,14 +6,10 @@
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
 #include <pcl/io/vtk_lib_io.h>
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 namespace fs = boost::filesystem;
@@ -36,7 +32,6 @@ Cli::Cli() {}
 int Cli::main(int argc, char **argv) {
 
     int exit_code = parse_arguments(argc, argv);
-    init_logging();
 
     if (exit_code) {
         if (exit_code == 2) {// Displayed help
@@ -45,6 +40,8 @@ int Cli::main(int argc, char **argv) {
         std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
         return 1;
     }
+
+    init_logging();
 
     Mesh mesh = Mesh();
 
@@ -113,7 +110,9 @@ int Cli::parse_arguments(int argc, char **argv) {
             ("mesh-only,m", "only mesh the pcd file.")
             ("register-only,r", "only register the pcd files.")
             ("max-corr-dist,d", po::value<double>(), "Maximum distance allowed between points in different clouds. (>0)")
-            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do. (>0)");
+            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do. (>0)")
+            ("log-level,l", po::value<std::string>(), "Set the log level to: trace, debug, info (default), warn, or error. Default")
+            ("log-file", po::value<std::string>(), "The filename of the log file. Default filename is 3DCopy_log.");
 
     po::options_description filenames("Input and output files");
     filenames.add_options()
@@ -163,6 +162,23 @@ void Cli::load_values(po::variables_map vm) {
 
     if (vm.count("verbose")) {
         verbose = true;
+    }
+
+    if (vm.count("log-level")) {
+        std::map<std::string, logging::trivial::severity_level> severity_map;
+        severity_map["trace"] = logging::trivial::trace;
+        severity_map["debug"] = logging::trivial::debug;
+        severity_map["info"] = logging::trivial::info;
+        severity_map["warn"] = logging::trivial::warning;
+        severity_map["error"] = logging::trivial::error;
+
+        if (severity_map.count(vm["log-level"].as<std::string>())) {
+            log_lvl = severity_map[vm["log-level"].as<std::string>()];
+        }
+    }
+
+    if (vm.count("log-file")) {
+        log_filename = vm["log-file"].as<std::string>();
     }
 
     if (vm.count("mesh-only")) {
@@ -291,12 +307,14 @@ void Cli::print_help(po::options_description options, char **argv) {
     std::cout << options << std::endl;
 }
 
-
+/**
+ * Initializes logging with variables set from the command line or the default ones.
+ */
 void Cli::init_logging() {
     fs::path log_path = "";
     logging::add_common_attributes();
     logging::add_file_log(
-            keywords::file_name = "3DCopy_%N.log",
+            keywords::file_name = (log_filename + "_%N.log"),
             keywords::rotation_size = 10 * 1024 * 1024,
             keywords::auto_flush = true,
             keywords::format = "[%TimeStamp%]: %Message%"

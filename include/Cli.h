@@ -34,6 +34,7 @@ class Cli {
         unsigned int max_iterations = 100;          //Force the ICP Algorithm to stop after max_iterations
         double transformation_epsilon = 1e-7;       //How much ICP is allowed to move source in one iteration
         logging::trivial::severity_level log_lvl = logging::trivial::info;
+        std::string log_filename = "3DCopy_log";
 
         // Methods
         void print_help(po::options_description options, char **argv);
