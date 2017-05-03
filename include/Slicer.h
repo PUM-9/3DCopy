@@ -15,7 +15,11 @@ enum Slicers {
 
 class Slicer {
     public:
-        void launch(Slicers slicer, std::string mesh_file);
+        int launch(Slicers slicer, std::string mesh_file) const;
+
+    private:
+        int launch_cura(std::string mesh_file) const;
+        int launch_slic3r(std::string mesh_file) const;
 };
 
 
