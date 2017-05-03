@@ -18,6 +18,8 @@ class Slicer {
         int launch(Slicers slicer, std::string mesh_file) const;
 
     private:
+        std::string cura_path = "/usr/share/cura";
+
         int launch_cura(std::string mesh_file) const;
         int launch_slic3r(std::string mesh_file) const;
 };
