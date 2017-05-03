@@ -53,8 +53,12 @@ int Cli::main(int argc, char **argv) {
 
     // Do checks if user wants to do slicing here...
     // then launch the slicer like this:
-    Slicer slicer;
-    slicer.launch(Cura, "mesh.stl");
+    /*
+    if (Slicer::enabled()) {
+        Slicer slicer;
+        slicer.launch(Cura, "mesh.stl");
+    }
+    */
 
     return 0;
 }
