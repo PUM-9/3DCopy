@@ -27,6 +27,7 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
         if(has_converged()){
             std::cout << "Points in point cloud before filtering: " << temp->width*temp->height << std::endl;
             voxel_filter.filter(*final_cloud);      //final_cloud = temp, but with filtering
+            //final_cloud = temp;
             std::cout << "Points in point cloud after filtering: " << final_cloud->width*final_cloud->height << std::endl;
 
         } else {
