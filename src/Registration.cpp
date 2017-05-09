@@ -1,8 +1,8 @@
 #include <iostream>
 #include "../include/Registration.h"
 #include <pcl/registration/icp.h>
-
 #include <pcl/io/pcd_io.h>
+#include <boost/log/trivial.hpp>
 
 
 /**
@@ -12,6 +12,7 @@
  */
 Cloud::Ptr
 Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
+    BOOST_LOG_TRIVIAL(info) << "Registration started";
     if(input_pclouds.empty()) {
         return nullptr;
     }

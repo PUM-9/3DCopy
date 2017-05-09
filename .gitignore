@@ -6,3 +6,4 @@ cmake-build-debug/
 tests/.idea/
 .DS_Store
 *.pcd
+*.log
