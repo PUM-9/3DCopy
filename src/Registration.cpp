@@ -16,9 +16,9 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
     }
     Cloud::Ptr final_cloud = input_pclouds[0];
     pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
-    float leaf_size = 0.4f;
     unsigned int point_clouds = 0;
     voxel_filter.setLeafSize(leaf_size,leaf_size,leaf_size);
+    //for (auto it = input_pclouds.begin()+1; it != input_pclouds.end(); ++it) {
     for(Cloud::Ptr cloud : input_pclouds){
         std::cout << "---------------------------------------------" << std::endl;
         Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);

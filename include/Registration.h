@@ -29,7 +29,7 @@ private:
     unsigned int max_iterations = 100;                  //Force the ICP Algorithm to stop after max_iterations;
     double transformation_epsilon = 1e-7;               //How much ICP is allowed to move source in one iteration;
     bool verbose = false;
-
+    float leaf_size = 0.43f;                            //Leaf size for the voxel filter
 
     //Methods
     Cloud::Ptr add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud);
