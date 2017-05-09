@@ -9,7 +9,7 @@
  * found by cmake).
  * @return true if slicing is possible, false otherwise
  */
-bool Slicer::enabled() {
+bool Slicer::is_enabled() {
     #ifdef ENABLE_SLICER
         return true;
     #endif

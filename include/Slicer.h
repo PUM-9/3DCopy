@@ -18,7 +18,7 @@ enum Slicers {
 
 class Slicer {
     public:
-        static bool enabled();
+        static bool is_enabled();
         int launch(Slicers slicer, std::string mesh_file) const;
 
         std::string get_cura_path() const { return cura_path; };

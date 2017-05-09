@@ -5,7 +5,6 @@
 #include "../include/Cli.h"
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
-#include "../include/Slicer.h"
 #include <pcl/io/vtk_lib_io.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -50,15 +49,6 @@ int Cli::main(int argc, char **argv) {
         pcl::PolygonMesh polygon_mesh = mesh.mesh(point_cloud);
         save_mesh(polygon_mesh);
     }
-
-    // Do checks if user wants to do slicing here...
-    // then launch the slicer like this:
-    /*
-    if (Slicer::enabled()) {
-        Slicer slicer;
-        slicer.launch(Cura, "mesh.stl");
-    }
-    */
 
     return 0;
 }
