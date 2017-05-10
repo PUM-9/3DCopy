@@ -18,7 +18,6 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
     pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
     unsigned int point_clouds = 0;
     voxel_filter.setLeafSize(leaf_size,leaf_size,leaf_size);
-    //for (auto it = input_pclouds.begin()+1; it != input_pclouds.end(); ++it) {
     for(Cloud::Ptr cloud : input_pclouds){
         std::cout << "---------------------------------------------" << std::endl;
         Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
@@ -26,8 +25,7 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
         voxel_filter.setInputCloud(temp);
         if(has_converged()){
             std::cout << "Points in point cloud before filtering: " << temp->width*temp->height << std::endl;
-            voxel_filter.filter(*final_cloud);      //final_cloud = temp, but with filtering
-            //final_cloud = temp;
+            voxel_filter.filter(*final_cloud);
             std::cout << "Points in point cloud after filtering: " << final_cloud->width*final_cloud->height << std::endl;
 
         } else {
@@ -96,6 +94,12 @@ Registration::has_converged(){
 }
 
 void
+Registration::set_leaf_size(float size){
+    if (size > 0.0){
+        this->leaf_size = size;
+    }
+}
+void
 Registration::set_max_correspondence_distance(double distance){
     if (distance > 0) {
         this->max_correspondence_distance = distance;
@@ -114,6 +118,10 @@ Registration::set_transformation_epsilon(double epsilon){
     }
 }
 
+float
+Registration::get_leaf_size(){
+    return this->leaf_size;
+}
 unsigned int
 Registration::get_max_iterations(){
     return this->max_iterations;

@@ -19,6 +19,8 @@ public:
     double get_transformation_epsilon();
     void set_verbose_mode(bool mode);
     bool get_verbose_mode();
+    void set_leaf_size(float size);
+    float get_leaf_size();
 
 private:
     //Data fields
