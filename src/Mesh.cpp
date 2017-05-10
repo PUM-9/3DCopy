@@ -65,16 +65,25 @@ void
 Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh)
 {
 
+    int depth = 11;
+    int solver_divide = 7;
+    int iso_divide = 10;
+    int samples_per_node = 1;
+    float point_weight = 4.0f;
+
     std::cout << "Begin poisson surface reconstruction" << std::endl;
     // Initialize poisson reconstruction
     pcl::Poisson<pcl::PointNormal> poisson;
 
     /*
-     * Set the maximum depth of the tree used in Poisson surface reconstruction.
-     * A higher value means more iterations which could lead to better results but
-     * it is also more computationally heavy.
-     */
-    poisson.setDepth(10);
+    * Set the maximum depth of the tree used in Poisson surface reconstruction.
+    * A higher value means more iterations which could lead to better results but
+    * it is also more computationally heavy.
+    */
+    poisson.setDepth(depth);
+    poisson.setSolverDivide(solver_divide);
+    poisson.setPointWeight(point_weight);
+    poisson.setSamplesPerNode(samples_per_node);
     poisson.setInputCloud(point_cloud);
 
     // Perform the Poisson surface reconstruction algorithm
@@ -101,6 +110,8 @@ Mesh::mesh(const PointCloud::Ptr point_cloud)
     // Point cloud to mesh reconstruction
     pcl::PolygonMesh mesh;
     poisson_reconstruction(cloud_with_normals, mesh);
+
+
 
     return mesh;
 }
