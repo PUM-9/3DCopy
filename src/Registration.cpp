@@ -21,10 +21,13 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
             }
             cloud_array[floor(i/6)].push_back(input_pclouds[i]);
         }
-        std::vector<Eigen::Matrix4f> transformations;
+        std::vector<Cloud::Ptr> part_results;
+        part_results.resize(cloud_array.size());
         for(int i = 0; i < cloud_array.size();i++){
-            register_point_clouds(cloud_array[i]);
+            part_results[i] = register_point_clouds(cloud_array[i]);
         }
+        std::vector<Eigen::Matrix4f> transformations;
+        return part_results[0];
     } else {
         if (input_pclouds.empty()) {
             return nullptr;
