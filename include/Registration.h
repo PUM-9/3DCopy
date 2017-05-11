@@ -35,6 +35,7 @@ private:
 
     //Methods
     Cloud::Ptr add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud);
+    Cloud::Ptr register_point_clouds_small(std::vector<Cloud::Ptr> input_pclouds);
     bool has_converged();
 
 };
