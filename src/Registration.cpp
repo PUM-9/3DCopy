@@ -2,6 +2,7 @@
 #include "../include/Registration.h"
 #include <pcl/registration/icp.h>
 #include <pcl/io/pcd_io.h>
+#include <vector>
 
 
 /**
@@ -11,29 +12,45 @@
  */
 Cloud::Ptr
 Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
-    if(input_pclouds.empty()) {
-        return nullptr;
-    }
-    Cloud::Ptr final_cloud = input_pclouds[0];
-    pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
-    unsigned int point_clouds = 0;
-    voxel_filter.setLeafSize(leaf_size,leaf_size,leaf_size);
-    for(Cloud::Ptr cloud : input_pclouds){
-        std::cout << "---------------------------------------------" << std::endl;
-        Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
-        std::cout << "Registrered point cloud #" << point_clouds++ << "." << std::endl;
-        voxel_filter.setInputCloud(temp);
-        if(has_converged()){
-            std::cout << "Points in point cloud before filtering: " << temp->width*temp->height << std::endl;
-            voxel_filter.filter(*final_cloud);
-            std::cout << "Points in point cloud after filtering: " << final_cloud->width*final_cloud->height << std::endl;
-
-        } else {
-            std::cout << "ICP did not converge" << std::endl;
+    if(input_pclouds.size() > 6){
+        std::vector<std::vector<Cloud::Ptr> > cloud_array;
+        for(int i = 0; i < input_pclouds.size() ;i++){
+            if(i%6 == 0){
+                std::vector<Cloud::Ptr> temp;
+                cloud_array.push_back(temp);
+            }
+            cloud_array[floor(i/6)].push_back(input_pclouds[i]);
         }
+        std::vector<Eigen::Matrix4f> transformations;
+        for(int i = 0; i < cloud_array.size();i++){
+            register_point_clouds(cloud_array[i]);
+        }
+    } else {
+        if (input_pclouds.empty()) {
+            return nullptr;
+        }
+        Cloud::Ptr final_cloud = input_pclouds[0];
+        pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
+        unsigned int registered_point_clouds = 0;
+        voxel_filter.setLeafSize(leaf_size, leaf_size, leaf_size);
+        for (Cloud::Ptr cloud : input_pclouds) {
+            std::cout << "---------------------------------------------" << std::endl;
+            Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
+            std::cout << "Registrered point cloud #" << registered_point_clouds++ << "." << std::endl;
+            voxel_filter.setInputCloud(temp);
+            if (has_converged()) {
+                std::cout << "Points in point cloud before filtering: " << temp->width * temp->height << std::endl;
+                voxel_filter.filter(*final_cloud);
+                std::cout << "Points in point cloud after filtering: " << final_cloud->width * final_cloud->height
+                          << std::endl;
+
+            } else {
+                std::cout << "ICP did not converge" << std::endl;
+            }
+        }
+        std::cout << "---------------------------------------------" << std::endl;
+        return final_cloud;
     }
-    std::cout << "---------------------------------------------" << std::endl;
-    return final_cloud;
 }
 /**
  * Runs the ICP algorithm to register the given pointclouds.
