@@ -61,7 +61,7 @@ Registration::get_transform_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source
     icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
     Eigen::Matrix4f transformation_matrix = Eigen::Matrix<float,4,4>::Identity ();
     icp.align(*target_cloud);
-    std::cout << "ICP ran for " << icp.nr_iterations_ << "/" << max_iterations << " iterations." << std::endl;
+    std::cout << "ICP ran for " << icp.nr_iterations_ << '/' << max_iterations << " iterations." << std::endl;
 
     if (icp.hasConverged()) {
         std::cout << "The score is " << icp.getFitnessScore() << std::endl;
