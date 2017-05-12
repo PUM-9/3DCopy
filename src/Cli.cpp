@@ -6,13 +6,19 @@
 #include "../include/Mesh.h"
 #include "../include/Registration.h"
 #include <pcl/io/vtk_lib_io.h>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+namespace logging = boost::log;
+namespace keywords = boost::log::keywords;
 
 /**
- *  Default constructor that initializes a few private values.
+ *  Default constructor.
  */
 Cli::Cli() {}
 
@@ -26,9 +32,13 @@ Cli::Cli() {}
 int Cli::main(int argc, char **argv) {
 
     int exit_code = parse_arguments(argc, argv);
+    init_logging();
 
     if (exit_code) {
-        std::cout << "Failed to parse arguments, exit code: " << exit_code << std::endl;
+        if (exit_code == 2) {// Displayed help
+            return 0;
+        }
+        BOOST_LOG_TRIVIAL(error) << "Failed to parse arguments, exit code: " << exit_code;
         return 1;
     }
 
@@ -61,7 +71,8 @@ int Cli::main(int argc, char **argv) {
 int Cli::read_dir(fs::path path) {
 
     if (!fs::exists(path)) {
-        std::cout << path << " not found." << std::endl;
+        if (verbose) {std::cout << path << " not found." << std::endl;}
+        BOOST_LOG_TRIVIAL(warning) << path << " not found.";
         return 1;
     }
 
@@ -77,7 +88,8 @@ int Cli::read_dir(fs::path path) {
 
         }
     } catch (const fs::filesystem_error& ex) {
-        std::cout << ex.what() << std::endl;
+        if (verbose) {std::cout << ex.what() << std::endl;}
+        BOOST_LOG_TRIVIAL(error) << ex.what();
         return 1;
     }
 
@@ -99,7 +111,9 @@ int Cli::parse_arguments(int argc, char **argv) {
             ("mesh-only,m", "only mesh the pcd file.")
             ("register-only,r", "only register the pcd files.")
             ("max-corr-dist,d", po::value<double>(), "Maximum distance allowed between points in different clouds. (>0)")
-            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do. (>0)");
+            ("max-iterations,i", po::value<int>(), "Maximum number of iterations ICP are allowed to do. (>0)")
+            ("log-level,l", po::value<std::string>(), "Set the log level to: trace, debug, info (default), warn, or error. Default")
+            ("log-file", po::value<std::string>(), "The filename of the log file. Default filename is 3DCopy_log.");
 
     po::options_description filenames("Input and output files");
     filenames.add_options()
@@ -133,6 +147,7 @@ int Cli::parse_arguments(int argc, char **argv) {
 
     if (sources.empty()) {
         std::cout << "No sources found" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "No sources found";
         print_help(options, argv);
         return 3;
     }
@@ -149,6 +164,23 @@ void Cli::load_values(po::variables_map vm) {
 
     if (vm.count("verbose")) {
         verbose = true;
+    }
+
+    if (vm.count("log-level")) {
+        std::map<std::string, logging::trivial::severity_level> severity_map;
+        severity_map["trace"] = logging::trivial::trace;
+        severity_map["debug"] = logging::trivial::debug;
+        severity_map["info"] = logging::trivial::info;
+        severity_map["warn"] = logging::trivial::warning;
+        severity_map["error"] = logging::trivial::error;
+
+        if (severity_map.count(vm["log-level"].as<std::string>())) {
+            log_lvl = severity_map[vm["log-level"].as<std::string>()];
+        }
+    }
+
+    if (vm.count("log-file")) {
+        log_filename = vm["log-file"].as<std::string>();
     }
 
     if (vm.count("mesh-only")) {
@@ -211,10 +243,12 @@ void Cli::add_source(fs::path path) {
         if (fs::extension(path) == ".pcd") {
             sources.push_back(path);
         } else {
-            std::cout << path << " not recognized as pcd file." << std::endl;
+            if (verbose) {std::cout << path << " not recognized as pcd file." << std::endl;}
+            BOOST_LOG_TRIVIAL(warning) << path << " not recognized as pcd file.";
         }
     } else {
-        std::cout << path << " not found." << std::endl;
+        if (verbose) {std::cout << path << " not found." << std::endl;}
+        BOOST_LOG_TRIVIAL(warning) << path << " not found.";
     }
 }
 
@@ -237,7 +271,8 @@ PointCloud::Ptr Cli::register_point_clouds() {
         pcl::io::loadPCDFile((*it).string(), *point_cloud_ptr);
         point_clouds.push_back(point_cloud_ptr);
     }
-    std::cout << "Read point clouds" << std::endl;
+    if (verbose) {std::cout << "Read point clouds" << std::endl;}
+    BOOST_LOG_TRIVIAL(info) << "Read point clouds";
     return registration.register_point_clouds(point_clouds);
 }
 
@@ -249,7 +284,8 @@ void Cli::save_point_cloud(const PointCloud::Ptr point_cloud) {
     std::stringstream ss;
     ss << output_filename << ".pcd";
     pcl::io::savePCDFile(ss.str(), *point_cloud);
-    std::cout << "Saved point cloud to " << ss.str() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Saved point cloud to " << ss.str();
+    if (verbose) {std::cout << "Saved point cloud to " << ss.str() << std::endl;}
 }
 
 /**
@@ -260,7 +296,8 @@ void Cli::save_mesh(const pcl::PolygonMesh polygon_mesh) {
     std::stringstream ss;
     ss << output_filename << ".stl";
     pcl::io::savePolygonFileSTL(ss.str(), polygon_mesh);
-    std::cout << "Saved mesh to " << ss.str() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Saved mesh to " << ss.str();
+    if (verbose){std::cout << "Saved mesh to " << ss.str() << std::endl;}
 }
 
 /**
@@ -275,3 +312,18 @@ void Cli::print_help(po::options_description options, char **argv) {
     std::cout << options << std::endl;
 }
 
+/**
+ * Initializes logging with variables set from the command line or the default ones.
+ */
+void Cli::init_logging() {
+    fs::path log_path = "";
+    logging::add_common_attributes();
+    logging::add_file_log(
+            keywords::file_name = (log_filename + "_%N.log"),
+            keywords::rotation_size = 10 * 1024 * 1024,
+            keywords::auto_flush = true,
+            keywords::format = "[%TimeStamp%]: %Message%"
+    );
+    logging::core::get()->set_filter(logging::trivial::severity >= log_lvl);
+    BOOST_LOG_TRIVIAL(info) << "Logging initialized";
+}

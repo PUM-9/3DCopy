@@ -2,6 +2,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/normal_3d_omp.h>
 #include <pcl/surface/poisson.h>
+#include <boost/log/trivial.hpp>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::Normal> NormalCloud;
@@ -113,6 +114,9 @@ Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud,
 pcl::PolygonMesh
 Mesh::mesh(const PointCloud::Ptr point_cloud)
 {
+
+    BOOST_LOG_TRIVIAL(info) << "Meshing started";
+
     // Estimate the normals of the point cloud
     NormalCloud::Ptr normals = estimate_normals(point_cloud);
 
