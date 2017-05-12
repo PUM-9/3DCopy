@@ -16,14 +16,17 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
     if(input_pclouds.empty()) {
         return nullptr;
     }
-    Cloud::Ptr final_cloud = input_pclouds[0];
+    Cloud::Ptr final_cloud(new Cloud);
     pcl::VoxelGrid<pcl::PointXYZ> voxel_filter;
     unsigned int point_clouds = 0;
     voxel_filter.setLeafSize(leaf_size,leaf_size,leaf_size);
     for(Cloud::Ptr cloud : input_pclouds){
         std::cout << "---------------------------------------------" << std::endl;
-        Cloud::Ptr temp = add_point_cloud_to_target(final_cloud, cloud);
-        std::cout << "Registrered point cloud #" << point_clouds++ << "." << std::endl;
+        Eigen::Matrix4f transform = get_transform_to_target(final_cloud, cloud);
+        std::cout << "Registered point cloud #" << point_clouds++ << "." << std::endl;
+        Cloud::Ptr temp(new Cloud);
+        *temp = *final_cloud;
+        merge_clouds(temp, cloud, transform);
         voxel_filter.setInputCloud(temp);
         if(has_converged()){
             std::cout << "Points in point cloud before filtering: " << temp->width*temp->height << std::endl;
@@ -43,30 +46,30 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
  * @param source_cloud Source cloud, will be moved to match target
  * @return Returns a pointer to the final cloud
  */
-Cloud::Ptr
-Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud) {
+Eigen::Matrix4f
+Registration::get_transform_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud) {
 
     // Start ICP
     pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-    Cloud::Ptr target_cloud_new(new Cloud);
-    Cloud::Ptr final_cloud(new Cloud);
+    Cloud::Ptr source_cloud_transformed(new Cloud);
 
     // Parameters for the ICP algorithm
-    icp.setInputTarget(source_cloud);
-    icp.setInputSource(target_cloud);
+    icp.setInputTarget(target_cloud);
+    icp.setInputSource(source_cloud);
     icp.setMaximumIterations(this->max_iterations);
     icp.setTransformationEpsilon(this->transformation_epsilon);
     icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
-
+    Eigen::Matrix4f transformation_matrix = Eigen::Matrix<float,4,4>::Identity ();
     icp.align(*target_cloud);
-    std::cout << "ICP ran for " << icp.nr_iterations_ << " iterations" << std::endl;
+    std::cout << "ICP ran for " << icp.nr_iterations_ << "/" << max_iterations << " iterations." << std::endl;
 
     if (icp.hasConverged()) {
         std::cout << "The score is " << icp.getFitnessScore() << std::endl;
+        transformation_matrix = icp.getFinalTransformation();
         if(verbose) {
             std::cout << "ICP converged/success." << std::endl;
             std::cout << "Transformation matrix:" << std::endl;
-            std::cout << icp.getFinalTransformation() << std::endl;
+            std::cout << transformation_matrix << std::endl;
         }
         icp_converged = true;
     } else {
@@ -75,19 +78,23 @@ Registration::add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr sour
         }
         icp_converged = false;
     }
+    pcl::transformPointCloud(*source_cloud, *source_cloud_transformed, transformation_matrix);
+    pcl::io::savePCDFileASCII("ICP_result.pcd", *target_cloud + *source_cloud_transformed);
+    return transformation_matrix;
+}
 
-    Eigen::Matrix4f transformationMatrix = icp.getFinalTransformation();
-    if(verbose) {
-        std::cout << "trans \n" << transformationMatrix << std::endl;
-    }
-
-    pcl::transformPointCloud(*target_cloud, *target_cloud_new, transformationMatrix);
-
-    *final_cloud = *source_cloud + *target_cloud;
-
-    pcl::io::savePCDFileASCII("ICP_result.pcd", *final_cloud);
-    return final_cloud;
-
+/**
+ * Merges new_cloud transformed to the target cloud
+ * @param target Will have new_cloud added after function returns
+ * @param new_cloud Will be transformed by transform and added to target
+ * @param transform The transform to apply to new_cloud
+ * @return void
+ */
+void
+Registration::merge_clouds(Cloud::Ptr target, Cloud::Ptr new_cloud, Eigen::Matrix4f transform){
+    pcl::transformPointCloud(*new_cloud,*new_cloud,transform);
+    *target = *target + *new_cloud;
+    return;
 }
 
 bool

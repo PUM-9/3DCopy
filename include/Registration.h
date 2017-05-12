@@ -34,7 +34,8 @@ private:
     float leaf_size = 0.43f;                            //Leaf size for the voxel filter
 
     //Methods
-    Cloud::Ptr add_point_cloud_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud);
+    Eigen::Matrix4f get_transform_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source_cloud);
+    void merge_clouds(Cloud::Ptr target, Cloud::Ptr new_cloud, Eigen::Matrix4f transform);
     bool has_converged();
 
 };
