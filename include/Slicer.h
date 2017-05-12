@@ -6,11 +6,7 @@
 #define INC_3DCOPY_SLICER_H
 
 #include <string>
-
-#ifdef ENABLE_SLICER
-#include "boost/process.hpp"
-namespace bp = boost::process;
-#endif //ENABLE_SLICER
+#include <cstdlib>
 
 enum Slicers {
     Cura, Slic3r
@@ -18,7 +14,6 @@ enum Slicers {
 
 class Slicer {
     public:
-        static bool is_enabled();
         int launch(Slicers slicer, std::string mesh_file) const;
 
         std::string get_cura_path() const { return cura_path; };
