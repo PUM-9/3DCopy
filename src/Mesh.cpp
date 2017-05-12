@@ -65,8 +65,14 @@ Mesh::estimate_normals(const PointCloud::Ptr point_cloud)
 void
 Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh)
 {
+    // Variables for the parameters
+    int depth = 12;
+    int solver_divide = 7;
+    int samples_per_node = 1;
+    float point_weight = 4.0f;
 
     std::cout << "Begin poisson surface reconstruction" << std::endl;
+
     // Initialize poisson reconstruction
     pcl::Poisson<pcl::PointNormal> poisson;
 
@@ -75,10 +81,27 @@ Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud,
      * A higher value means more iterations which could lead to better results but
      * it is also more computationally heavy.
      */
-    poisson.setDepth(10);
-    poisson.setInputCloud(point_cloud);
+    poisson.setDepth(depth);
+
+    /*
+     * Set the the depth at which a block Gauss-Seidel solver is used to solve the Laplacian equation.
+     * Using this parameter helps reduce the memory overhead at the cost of reconstruction time.
+     */
+    poisson.setSolverDivide(solver_divide);
+
+    /*
+     * Set the minimum number of sample points that should fall within an octree node as the octree
+     * construction is adapted to sampling density.
+     * For noise-free samples, small values in the range [1.0 - 5.0] can be used. For more noisy samples,
+     * larger values in the range [15.0 - 20.0] may be needed to provide a smoother, noise-reduced, reconstruction.
+     */
+    poisson.setSamplesPerNode(samples_per_node);
+
+    // Set the point weight
+    poisson.setPointWeight(point_weight);
 
     // Perform the Poisson surface reconstruction algorithm
+    poisson.setInputCloud(point_cloud);
     poisson.reconstruct(mesh);
 }
 
@@ -91,7 +114,9 @@ Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud,
 pcl::PolygonMesh
 Mesh::mesh(const PointCloud::Ptr point_cloud)
 {
+
     BOOST_LOG_TRIVIAL(info) << "Meshing started";
+
     // Estimate the normals of the point cloud
     NormalCloud::Ptr normals = estimate_normals(point_cloud);
 
