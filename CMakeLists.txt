@@ -14,4 +14,4 @@ set(Boost_USE_STATIC_LIBS ON)
 
 add_executable(3DCopy ${SOURCE_FILES})
 
-target_link_libraries(3DCopy ${PCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(3DCopy ${PCL_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

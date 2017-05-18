@@ -21,23 +21,23 @@ Registration::register_point_clouds(std::vector<Cloud::Ptr> input_pclouds){
     unsigned int point_clouds = 0;
     voxel_filter.setLeafSize(leaf_size,leaf_size,leaf_size);
     for(Cloud::Ptr cloud : input_pclouds){
-        std::cout << "---------------------------------------------" << std::endl;
+        if (verbose) {std::cout << "---------------------------------------------" << std::endl;}
         Eigen::Matrix4f transform = get_transform_to_target(final_cloud, cloud);
-        std::cout << "Registered point cloud #" << point_clouds++ << "." << std::endl;
+        if (verbose) {std::cout << "Registered point cloud #" << point_clouds++ << "." << std::endl;}
         Cloud::Ptr temp(new Cloud);
         *temp = *final_cloud;
         merge_clouds(temp, cloud, transform);
         voxel_filter.setInputCloud(temp);
         if(has_converged()){
-            std::cout << "Points in point cloud before filtering: " << temp->width*temp->height << std::endl;
+            if(verbose) {std::cout << "Points in point cloud before filtering: " << temp->width*temp->height << std::endl;}
             voxel_filter.filter(*final_cloud);
-            std::cout << "Points in point cloud after filtering: " << final_cloud->width*final_cloud->height << std::endl;
+            if(verbose) {std::cout << "Points in point cloud after filtering: " << final_cloud->width*final_cloud->height << std::endl;}
 
         } else {
-            std::cout << "ICP did not converge" << std::endl;
+            if(verbose) {std::cout << "ICP did not converge" << std::endl;}
         }
     }
-    std::cout << "---------------------------------------------" << std::endl;
+    if(verbose) {std::cout << "---------------------------------------------" << std::endl;}
     return final_cloud;
 }
 /**
@@ -61,10 +61,10 @@ Registration::get_transform_to_target(Cloud::Ptr target_cloud, Cloud::Ptr source
     icp.setMaxCorrespondenceDistance(this->max_correspondence_distance);
     Eigen::Matrix4f transformation_matrix = Eigen::Matrix<float,4,4>::Identity ();
     icp.align(*target_cloud);
-    std::cout << "ICP ran for " << icp.nr_iterations_ << '/' << max_iterations << " iterations." << std::endl;
+    if(verbose) {std::cout << "ICP ran for " << icp.nr_iterations_ << '/' << max_iterations << " iterations." << std::endl;}
 
     if (icp.hasConverged()) {
-        std::cout << "The score is " << icp.getFitnessScore() << std::endl;
+        if(verbose) {std::cout << "The score is " << icp.getFitnessScore() << std::endl;}
         transformation_matrix = icp.getFinalTransformation();
         if(verbose) {
             std::cout << "ICP converged/success." << std::endl;
