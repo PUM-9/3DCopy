@@ -1,14 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "Installing dependecies"
 {
-    # Install basic build dependencies
-    apt-get install make g++ libboost-all-dev -y
+    # Add PPA for installing PCL
+    sudo add-apt-repository ppa:v-launchpad-jochen-sprickerhof-de/pcl -y
+
+    # Install basic build dependencies and Boost
+    sudo apt-get update
+    sudo apt-get install make g++ libboost-all-dev -y
 
     # Install PCL
-    add-apt-repository ppa:v-launchpad-jochen-sprickerhof-de/pcl -y
-    apt-get update
-    apt-get install libpcl-all -y
+    sudo apt-get install libpcl-all -y
 
 } > /dev/null 2>&1
 
@@ -18,7 +20,6 @@ cd build
 
 echo "Downloading cmake version 3.8.1"
 {
-    echo "hej"
     # Download recent version of cmake
     wget https://cmake.org/files/v3.8/cmake-3.8.1-Linux-x86_64.sh
     chmod +x cmake-3.8.1-Linux-x86_64.sh
@@ -30,10 +31,10 @@ echo "Downloading cmake version 3.8.1"
 echo "Generating makefiles with cmake"
 {
     cmake-3.8.1-Linux-x86_64/bin/cmake ..
-}
+} > /dev/null 2>&1
 
 echo "Running make"
-make -j4
-make install
+make -j4 > /dev/null 2>&1
+sudo make install
 
 echo "Done"
