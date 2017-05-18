@@ -15,10 +15,15 @@ typedef pcl::PointCloud<pcl::Normal> NormalCloud;
 class Mesh {
     public:
         pcl::PolygonMesh mesh(const PointCloud::Ptr point_cloud);
+	void set_verbose_mode(bool mode) { this->verbose = mode; };
+	bool get_verbose_mode() { return verbose; };
 
     private:
+	bool verbose = false;
+
         void poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud, pcl::PolygonMesh& mesh);
         NormalCloud::Ptr estimate_normals(const PointCloud::Ptr point_cloud);
+
 };
 
 #endif //INC_3DCOPY_MESH_H

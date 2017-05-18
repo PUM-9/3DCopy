@@ -16,7 +16,11 @@ typedef pcl::PointCloud<pcl::Normal> NormalCloud;
 NormalCloud::Ptr
 Mesh::estimate_normals(const PointCloud::Ptr point_cloud)
 {
-    std::cout << "Estimating normals" << std::endl;
+    if (verbose) {
+        std::cout << "Estimating normals" << std::endl;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Estimating normals";
 
     // Declare PCL objects needed to perform normal estimation
     pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> normal_estimation;
@@ -71,7 +75,11 @@ Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud,
     int samples_per_node = 1;
     float point_weight = 4.0f;
 
-    std::cout << "Begin poisson surface reconstruction" << std::endl;
+    if (verbose) {
+        std::cout << "Begin poisson surface reconstruction" << std::endl;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Begin poisson surface reconstruction";
 
     // Initialize poisson reconstruction
     pcl::Poisson<pcl::PointNormal> poisson;
@@ -114,7 +122,6 @@ Mesh::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud,
 pcl::PolygonMesh
 Mesh::mesh(const PointCloud::Ptr point_cloud)
 {
-
     BOOST_LOG_TRIVIAL(info) << "Meshing started";
 
     // Estimate the normals of the point cloud
