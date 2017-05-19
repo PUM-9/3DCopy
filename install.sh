@@ -2,15 +2,23 @@
 
 echo "Installing dependecies"
 {
-    # Add PPA for installing PCL
-    sudo add-apt-repository ppa:v-launchpad-jochen-sprickerhof-de/pcl -y
+    # Find which version of Ubuntu is running
+    source /etc/lsb-release
+    if [ DISTRIB_RELEASE == "14.04" ]; then 
+	# Add PPA for installing PCL
+	sudo add-apt-repository ppa:v-launchpad-jochen-sprickerhof-de/pcl -y
+	sudo apt-get update
 
-    # Install basic build dependencies and Boost
-    sudo apt-get update
+	# Install PCL
+	sudo apt-get install libpcl-all -y
+    else
+	# Probably later version, just install PCL
+	sudo apt-get update
+	sudo apt-get install libpcl-dev
+    fi
+
+    # Install basic build dependencies and Boost	
     sudo apt-get install make g++ libboost-all-dev -y
-
-    # Install PCL
-    sudo apt-get install libpcl-all -y
 
 } > /dev/null 2>&1
 
