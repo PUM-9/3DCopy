@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.7.1)
 project(3DCopy)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE Release)
+
 find_package(PCL 1.3 REQUIRED)
 find_package(Boost 1.40 COMPONENTS program_options filesystem log REQUIRED)
 
@@ -19,4 +21,6 @@ set(SOURCE_FILES src/main.cpp src/Cli.cpp src/Mesh.cpp src/Registration.cpp src/
 
 add_executable(3DCopy ${SOURCE_FILES})
 
-target_link_libraries(3DCopy ${PCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(3DCopy ${PCL_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+install(TARGETS 3DCopy DESTINATION bin)
