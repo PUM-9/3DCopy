@@ -36,7 +36,7 @@ cd 3DCopy
 ```
 
 #### Build it yourself
-If you're not using Ubuntu or if for some other reason the scipt doesn't work for you, you need to build it yourself. Its dependencies are [Boost](http://www.boost.org/ Boost) and [PCL](https://www.pointclouds.org/ "Point Cloud Library"). You also need [CMake](http://www.cmake.org CMake) and the usual dependencies for building C++. When all dependencies are met, run:
+If you're not using Ubuntu or if for some other reason the scipt doesn't work for you, you need to build it yourself. Its dependencies are [Boost](http://www.boost.org/ "Boost") and [PCL](https://www.pointclouds.org/ "Point Cloud Library"). You also need [CMake](http://www.cmake.org "CMake") and the usual dependencies for building C++. When all dependencies are met, run:
 
 ```
 git clone https://github.com/PUM-9/3DCopy.git
