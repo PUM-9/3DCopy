@@ -17,6 +17,8 @@ link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
+list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
+
 set(SOURCE_FILES src/main.cpp src/Cli.cpp src/Mesh.cpp src/Registration.cpp src/Slicer.cpp)
 
 add_executable(3DCopy ${SOURCE_FILES})
