@@ -43,6 +43,7 @@ int Cli::main(int argc, char **argv) {
     }
 
     Mesh mesh = Mesh();
+    mesh.set_verbose_mode(verbose);
 
     if (mesh_only && !sources.empty()) {
         PointCloud::Ptr point_cloud_ptr (new PointCloud);
