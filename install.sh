@@ -14,7 +14,7 @@ echo "Installing dependecies"
     else
 	# Probably later version, just install PCL
 	sudo apt-get update
-	sudo apt-get install libpcl-dev -y
+	sudo apt-get install libpcl-dev libproj-dev -y
     fi
 
     # Install basic build dependencies and Boost	
